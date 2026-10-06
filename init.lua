@@ -1,5 +1,12 @@
 --!strict
 
+-- Services
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local TextService = game:GetService("TextService")
+local Workspace = game:GetService("Workspace")
+
 local Theme = {}
 
 Theme.Colors = {
@@ -502,12 +509,6 @@ local Elements = (function()
 	return componentElements
 end)()
 
-local Players = game:GetService("Players")
-local UserInputService = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
-local TextService = game:GetService("TextService")
-local Workspace = game:GetService("Workspace")
-
 local HavocLib = {}
 HavocLib.__index = HavocLib
 
@@ -533,6 +534,42 @@ local setCanvasHeight = Elements.SetCanvasHeight
 local safeCallback = Elements.SafeCallback
 local iconImage = Elements.IconImage
 
+local function encodeConfigValue(value: any): any
+	local valueType = typeof(value)
+	if valueType == "Color3" then
+		return {
+			__havocType = "Color3",
+			R = value.R,
+			G = value.G,
+			B = value.B,
+		}
+	elseif valueType == "EnumItem" and value.EnumType == Enum.KeyCode then
+		return {
+			__havocType = "KeyCode",
+			Name = value.Name,
+		}
+	elseif valueType == "string" or valueType == "number" or valueType == "boolean" then
+		return value
+	end
+	error("Unsupported configuration value type: " .. valueType, 2)
+end
+
+local function decodeConfigValue(value: any, expectedType: string): any
+	if expectedType == "Color3" then
+		assert(type(value) == "table" and value.__havocType == "Color3", "Invalid saved Color3 value")
+		assert(type(value.R) == "number" and type(value.G) == "number" and type(value.B) == "number", "Invalid saved Color3 channels")
+		return Color3.new(value.R, value.G, value.B)
+	elseif expectedType == "EnumItem" then
+		assert(type(value) == "table" and value.__havocType == "KeyCode", "Invalid saved keybind value")
+		assert(type(value.Name) == "string", "Invalid saved keybind name")
+		local keyCode = Enum.KeyCode[value.Name]
+		assert(keyCode ~= nil, "Unknown saved keybind: " .. value.Name)
+		return keyCode
+	end
+	assert(typeof(value) == expectedType, "Saved value type does not match control type")
+	return value
+end
+
 function HavocLib.new(options: {[string]: any}?)
 	local config = options or {}
 	local player = Players.LocalPlayer
@@ -544,6 +581,14 @@ function HavocLib.new(options: {[string]: any}?)
 	self._connections = {}
 	self._notifications = {}
 	self._destroyed = false
+	self._settings = {}
+	self._configurationSaving = config.ConfigurationSaving or { Enabled = false }
+	if self._configurationSaving.Enabled then
+		local store = self._configurationSaving.Store
+		assert(type(store) == "table", "ConfigurationSaving.Store is required when configuration saving is enabled")
+		assert(type(store.Save) == "function", "ConfigurationSaving.Store.Save must be a function")
+		assert(type(store.Load) == "function", "ConfigurationSaving.Store.Load must be a function")
+	end
 
 	local screen = make("ScreenGui", {
 		Name = config.Name or "havoc lib",
@@ -876,6 +921,10 @@ function HavocLib.new(options: {[string]: any}?)
 	end
 	search:GetPropertyChangedSignal("Text"):Connect(window._applySearch)
 
+	if self._configurationSaving.Enabled then
+		window:_CreateConfigManager(self._configurationSaving)
+	end
+
 	tween(rootScale, Theme.Animation.Open.Time, { Scale = 1 }, Enum.EasingStyle.Back)
 	root.BackgroundTransparency = 1
 	tween(root, Theme.Animation.Fade.Time, { BackgroundTransparency = 0 })
@@ -1068,6 +1117,20 @@ function Section:_register(frame: Instance, searchText: string)
 	return frame
 end
 
+function Section:_registerSetting(options: {[string]: any}, control: any)
+	local flag = options.Flag
+	if flag == nil then
+		return
+	end
+	assert(type(flag) == "string" and flag ~= "", "Configurable controls require a non-empty string Flag")
+	local settings = self._window._library._settings
+	assert(settings[flag] == nil, "Duplicate configuration Flag: " .. flag)
+	settings[flag] = {
+		Control = control,
+		ValueType = typeof(control.Value),
+	}
+end
+
 function Section:Button(options: {[string]: any})
 	assert(type(options) == "table" and type(options.Name) == "string", "Button requires a Name")
 	local element = Elements.ActionButton(self._frame, options, self._window._library)
@@ -1165,6 +1228,7 @@ function Section:Row(options: {[string]: any})
 			toggleOptions.Size = UDim2.new(1, 0, 0, itemHeight)
 			local toggle = Elements.Toggle(row, toggleOptions, self._window._library)
 			toggle.Frame.LayoutOrder = index
+			self:_registerSetting(item, toggle)
 		else
 			error(string.format("Unsupported row item type %q; use Button or Toggle", item.Type), 2)
 		end
@@ -1178,6 +1242,7 @@ function Section:Toggle(options: {[string]: any})
 	assert(type(options) == "table" and type(options.Name) == "string", "Toggle requires a Name")
 	local toggle = Elements.Toggle(self._frame, options, self._window._library)
 	self:_register(toggle.Frame, options.Name)
+	self:_registerSetting(options, toggle)
 	return toggle
 end
 
@@ -1185,6 +1250,7 @@ function Section:Slider(options: {[string]: any})
 	assert(type(options) == "table" and type(options.Name) == "string", "Slider requires a Name")
 	local slider = Elements.Slider(self._frame, options, self._window._library, self._window._connections)
 	self:_register(slider.Frame, options.Name)
+	self:_registerSetting(options, slider)
 	return slider
 end
 
@@ -1255,6 +1321,7 @@ function Section:Dropdown(options: {[string]: any})
 		for _, option in ipairs(choices) do table.insert(strings, tostring(option)) end
 		return strings
 	end)(), " "))
+	self:_registerSetting(options, dropdown)
 	return dropdown
 end
 
@@ -1303,6 +1370,7 @@ function Section:Keybind(options: {[string]: any})
 	end)
 	table.insert(self._window._connections, connection)
 	self:_register(row, options.Name .. " " .. key.Name)
+	self:_registerSetting(options, keybind)
 	return keybind
 end
 
@@ -1356,10 +1424,14 @@ function Section:Input(options: {[string]: any})
 			row.Size = UDim2.new(1, 0, 0, height + 36)
 		end
 	end)
-	input.Set = function(_, value: string)
+	input.Set = function(_, value: string, fireCallback: boolean?)
 		field.Text = value
+		if fireCallback ~= false then
+			safeCallback(self._window._library, options.Callback, value, false)
+		end
 	end
 	self:_register(row, options.Name .. " " .. (options.Placeholder or ""))
+	self:_registerSetting(options, input)
 	return input
 end
 
@@ -1540,6 +1612,7 @@ function Section:ColorPicker(options: {[string]: any})
 	end)
 	setColor(color, false)
 	self:_register(holder, options.Name)
+	self:_registerSetting(options, colorPicker)
 	return colorPicker
 end
 
@@ -1561,6 +1634,211 @@ function Window:SetVisible(visible: boolean)
 			self.Root.Visible = false
 		end)
 	end
+end
+
+local function validateConfigName(name: any): (boolean, string)
+	if type(name) ~= "string" then
+		return false, "config name must be text."
+	end
+	name = string.match(name, "^%s*(.-)%s*$")
+	if name == "" then
+		return false, "enter a config name first."
+	end
+	if #name > 40 then
+		return false, "config names must be 40 characters or fewer."
+	end
+	if string.find(name, "[^%w _%-]") then
+		return false, "use only letters, numbers, spaces, underscores, and hyphens."
+	end
+	return true, name
+end
+
+function Window:SaveConfig(name: string): (boolean, string?)
+	local library = self._library
+	if not library._configurationSaving.Enabled then
+		return false, "configuration saving is disabled."
+	end
+	local valid, normalizedName = validateConfigName(name)
+	if not valid then
+		return false, normalizedName
+	end
+	local store = library._configurationSaving.Store
+	local values = {}
+	for flag, setting in pairs(library._settings) do
+		local value = setting.Control.Value
+		if value ~= nil then
+			values[flag] = encodeConfigValue(value)
+		end
+	end
+	local ok, result, message = pcall(store.Save, normalizedName, values)
+	if not ok then
+		warn("[Havoc Lib] Config save failed:", result)
+		return false, "config save failed; see the developer console."
+	end
+	if result ~= true then
+		return false, tostring(message or "config store must return true after saving.")
+	end
+	return true
+end
+
+function Window:CreateConfig(name: string): (boolean, string?)
+	return self:SaveConfig(name)
+end
+
+function Window:LoadConfig(name: string): (boolean, string?)
+	local library = self._library
+	if not library._configurationSaving.Enabled then
+		return false, "configuration saving is disabled."
+	end
+	local valid, normalizedName = validateConfigName(name)
+	if not valid then
+		return false, normalizedName
+	end
+	local store = library._configurationSaving.Store
+	local ok, values, message = pcall(store.Load, normalizedName)
+	if not ok then
+		warn("[Havoc Lib] Config load failed:", values)
+		return false, "config load failed; see the developer console."
+	end
+	if type(values) ~= "table" then
+		return false, tostring(message or "config was not found or returned invalid data.")
+	end
+
+	local pending = {}
+	for flag, value in pairs(values) do
+		local setting = library._settings[flag]
+		if setting then
+			local decodeOk, decoded = pcall(decodeConfigValue, value, setting.ValueType)
+			if not decodeOk then
+				warn("[Havoc Lib] Invalid value for config flag " .. tostring(flag) .. ":", decoded)
+				return false, "config contains an invalid setting; no values were applied."
+			end
+			table.insert(pending, { Control = setting.Control, Value = decoded })
+		else
+			warn("[Havoc Lib] Ignoring unknown config flag:", flag)
+		end
+	end
+	for _, item in ipairs(pending) do
+		item.Control:Set(item.Value)
+	end
+	return true
+end
+
+function Window:ListConfigs(): (boolean, {string}?, string?)
+	if not self._library._configurationSaving.Enabled then
+		return false, nil, "configuration saving is disabled."
+	end
+	local store = self._library._configurationSaving.Store
+	if type(store.List) ~= "function" then
+		return false, nil, "config listing is not supported by the configured store."
+	end
+	local ok, names, message = pcall(store.List)
+	if not ok then
+		warn("[Havoc Lib] Config listing failed:", names)
+		return false, nil, "config listing failed; see the developer console."
+	end
+	if type(names) ~= "table" then
+		return false, nil, tostring(message or "config store returned an invalid list.")
+	end
+	local result = {}
+	for _, name in ipairs(names) do
+		if type(name) == "string" then
+			table.insert(result, name)
+		end
+	end
+	table.sort(result, function(a, b)
+		return string.lower(a) < string.lower(b)
+	end)
+	return true, result
+end
+
+function Window:DeleteConfig(name: string): (boolean, string?)
+	if not self._library._configurationSaving.Enabled then
+		return false, "configuration saving is disabled."
+	end
+	local valid, normalizedName = validateConfigName(name)
+	if not valid then
+		return false, normalizedName
+	end
+	local store = self._library._configurationSaving.Store
+	if type(store.Delete) ~= "function" then
+		return false, "config deletion is not supported by the configured store."
+	end
+	local ok, result, message = pcall(store.Delete, normalizedName)
+	if not ok then
+		warn("[Havoc Lib] Config delete failed:", result)
+		return false, "config deletion failed; see the developer console."
+	end
+	if result ~= true then
+		return false, tostring(message or "config store must return true after deleting.")
+	end
+	return true
+end
+
+function Window:_CreateConfigManager(options: {[string]: any})
+	local tab = self:Tab({
+		Name = options.TabName or "configs",
+		Icon = options.Icon or "bookmark",
+	})
+	local section = tab:Section({
+		Name = options.SectionName or "configuration manager",
+		Icon = "settings",
+	})
+	local nameInput = section:Input({
+		Name = "config name",
+		Placeholder = "enter a name",
+		Default = options.DefaultConfig or "",
+	})
+	local function report(success: boolean, message: string?, action: string)
+		self:Notify({
+			Title = success and "config " .. action or "config error",
+			Content = success and (action .. " completed.") or tostring(message or "operation failed."),
+			Duration = 4,
+		})
+	end
+	local buttons = {
+		{
+			Name = "create / save",
+			Callback = function()
+				local success, message = self:CreateConfig(nameInput.Value)
+				report(success, message, "saved")
+			end,
+		},
+		{
+			Name = "load",
+			Callback = function()
+				local success, message = self:LoadConfig(nameInput.Value)
+				report(success, message, "loaded")
+			end,
+		},
+	}
+	if type(options.Store.List) == "function" then
+		table.insert(buttons, {
+			Name = "list",
+			Callback = function()
+				local success, names, message = self:ListConfigs()
+				if not success then
+					report(false, message, "listed")
+					return
+				end
+				self:Notify({
+					Title = "saved configs",
+					Content = if #names == 0 then "no configs saved." else table.concat(names, ", "),
+					Duration = 6,
+				})
+			end,
+		})
+	end
+	if type(options.Store.Delete) == "function" then
+		table.insert(buttons, {
+			Name = "delete",
+			Callback = function()
+				local success, message = self:DeleteConfig(nameInput.Value)
+				report(success, message, "deleted")
+			end,
+		})
+	end
+	section:Buttons({ Buttons = buttons, Height = 34, Gap = 6 })
 end
 
 function HavocLib:Notify(options: {[string]: any})
