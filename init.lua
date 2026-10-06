@@ -10,24 +10,26 @@ local Workspace = game:GetService("Workspace")
 local Theme = {}
 
 Theme.Colors = {
-	Background = Color3.fromRGB(10, 10, 12),
-	Container = Color3.fromRGB(20, 20, 24),
-	Interactive = Color3.fromRGB(28, 28, 34),
-	Accent = Color3.fromRGB(255, 255, 255),
-	Border = Color3.fromRGB(50, 50, 58),
-	Text = Color3.fromRGB(255, 255, 255),
-	Muted = Color3.fromRGB(160, 160, 170),
+	Background = Color3.fromRGB(16, 16, 17),
+	Container = Color3.fromRGB(36, 36, 38),
+	Interactive = Color3.fromRGB(40, 40, 42),
+	Accent = Color3.fromRGB(244, 244, 245),
+	Primary = Color3.fromRGB(0, 145, 255),
+	ToggleOn = Color3.fromRGB(51, 199, 89),
+	Border = Color3.fromRGB(58, 58, 60),
+	Text = Color3.fromRGB(243, 243, 245),
+	Muted = Color3.fromRGB(164, 164, 168),
 	Success = Color3.fromRGB(220, 220, 226),
 }
 
-Theme.CornerRadius = UDim.new(0, 12)
+Theme.CornerRadius = UDim.new(0, 10)
 Theme.Stroke = {
-	Color = Theme.Colors.Border,
+	Color = Color3.fromRGB(255, 255, 255),
 	Thickness = 1,
-	Transparency = 0.4,
+	Transparency = 0.925,
 	ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
 }
-Theme.PanelTransparency = 0.35
+Theme.PanelTransparency = 0
 Theme.HoverDuration = 0.12
 Theme.PressScale = 0.96
 Theme.OpenScale = 0.94
@@ -55,12 +57,42 @@ local Elements = (function()
 		return object
 	end
 
-	function componentElements.Corner(parent: Instance, _radius: number?)
-		return componentElements.Make("UICorner", { CornerRadius = Theme.CornerRadius }, parent)
+	function componentElements.GradientTint(baseColor: Color3, targetColor: Color3): Color3
+		local function channel(target: number, base: number): number
+			if base == 0 then
+				return 1
+			end
+			return math.clamp(target / base, 0, 1)
+		end
+		return Color3.new(
+			channel(targetColor.R, baseColor.R),
+			channel(targetColor.G, baseColor.G),
+			channel(targetColor.B, baseColor.B)
+		)
 	end
 
-	function componentElements.Stroke(parent: Instance, _transparency: number?)
-		return componentElements.Make("UIStroke", Theme.Stroke, parent)
+	function componentElements.Gradient(parent: Instance, baseColor: Color3, targetColor: Color3, rotation: number?)
+		return componentElements.Make("UIGradient", {
+			Color = ColorSequence.new(
+				Color3.new(1, 1, 1),
+				componentElements.GradientTint(baseColor, targetColor)
+			),
+			Rotation = rotation or 90,
+		}, parent)
+	end
+
+	function componentElements.Corner(parent: Instance, radius: number?)
+		return componentElements.Make("UICorner", {
+			CornerRadius = UDim.new(0, radius or Theme.CornerRadius.Offset),
+		}, parent)
+	end
+
+	function componentElements.Stroke(parent: Instance, transparency: number?)
+		local properties = table.clone(Theme.Stroke)
+		if transparency ~= nil then
+			properties.Transparency = transparency
+		end
+		return componentElements.Make("UIStroke", properties, parent)
 	end
 
 	function componentElements.Padding(parent: Instance, amount: number?, verticalAmount: number?)
@@ -126,9 +158,9 @@ local Elements = (function()
 			Size = size,
 			Text = text,
 			TextColor3 = COLORS.Text,
-			TextSize = 13,
+			TextSize = 10,
 		}, parent) :: TextButton
-		componentElements.Corner(element)
+		componentElements.Corner(element, 8)
 		componentElements.Stroke(element)
 		componentElements.AddPressFeedback(element)
 		return element
@@ -167,16 +199,13 @@ local Elements = (function()
 		if not options.TextColor and luminance > 0.55 then
 			textColor = COLORS.Background
 		end
-		local size = options.Size or UDim2.new(1, 0, 0, options.Height or 38)
+		local size = options.Size or UDim2.new(1, 0, 0, options.Height or 32)
 		local element = componentElements.Button(parent, options.Name, size, backgroundColor)
 		element.BackgroundColor3 = backgroundColor
 		element.TextColor3 = textColor
-		componentElements.Make("UIGradient", {
-			Color = ColorSequence.new(backgroundColor, backgroundColor:Lerp(Color3.new(0, 0, 0), 0.08)),
-			Rotation = 90,
-		}, element)
-		element.TextXAlignment = Enum.TextXAlignment.Left
-		componentElements.Padding(element, Theme.Padding, 0)
+		local gradientShade = if luminance > 0.55 then 0.08 else 0.23
+		componentElements.Gradient(element, backgroundColor, backgroundColor:Lerp(Color3.new(0, 0, 0), gradientShade))
+		element.TextXAlignment = Enum.TextXAlignment.Center
 		element.MouseButton1Click:Connect(function()
 			componentElements.SafeCallback(owner, options.Callback)
 		end)
@@ -184,7 +213,7 @@ local Elements = (function()
 	end
 
 	function componentElements.Paragraph(parent: Instance, options: {[string]: any})
-		return componentElements.Make("TextLabel", {
+		local content = componentElements.Make("TextLabel", {
 			AutomaticSize = Enum.AutomaticSize.Y,
 			BackgroundTransparency = 1,
 			Font = Enum.Font.Gotham,
@@ -192,11 +221,12 @@ local Elements = (function()
 			Size = UDim2.new(1, 0, 0, 0),
 			Text = options.Content or "",
 			TextColor3 = options.Color or COLORS.Muted,
-			TextSize = options.TextSize or 12,
+			TextSize = options.TextSize or 9,
 			TextWrapped = true,
 			TextXAlignment = Enum.TextXAlignment.Left,
 			TextYAlignment = Enum.TextYAlignment.Top,
 		}, parent)
+		return content
 	end
 
 	function componentElements.Toggle(parent: Instance, options: {[string]: any}, owner: any)
@@ -204,38 +234,33 @@ local Elements = (function()
 		local row = componentElements.Make("Frame", {
 			BackgroundColor3 = COLORS.Interactive,
 			BorderSizePixel = 0,
-			Size = options.Size or UDim2.new(1, 0, 0, 40),
+			Size = options.Size or UDim2.new(1, 0, 0, 34),
 		}, parent)
-		componentElements.Corner(row)
+		componentElements.Corner(row, 8)
 		componentElements.Stroke(row)
-		componentElements.Make("UIGradient", {
-			Color = ColorSequence.new(Color3.fromRGB(34, 34, 40), COLORS.Interactive),
-			Rotation = 90,
-		}, row)
-		local label = componentElements.TextLabel(row, options.Name, 12, COLORS.Text, Enum.Font.GothamMedium)
-		label.Position = UDim2.fromOffset(14, 0)
-		label.Size = UDim2.new(1, -62, 1, 0)
+		componentElements.Gradient(row, COLORS.Interactive, Color3.fromRGB(34, 34, 36))
+		local label = componentElements.TextLabel(row, options.Name, 10, COLORS.Text, Enum.Font.GothamMedium)
+		label.Position = UDim2.fromOffset(9, 0)
+		label.Size = UDim2.new(1, -50, 1, 0)
 		local track = componentElements.Make("Frame", {
 			AnchorPoint = Vector2.new(1, 0.5),
-			BackgroundColor3 = value and COLORS.Accent or COLORS.Muted,
+			BackgroundColor3 = value and COLORS.ToggleOn or Color3.fromRGB(69, 69, 73),
 			BorderSizePixel = 0,
-			Position = UDim2.new(1, -14, 0.5, 0),
-			Size = UDim2.fromOffset(34, 19),
+			Position = UDim2.new(1, -9, 0.5, 0),
+			Size = UDim2.fromOffset(28, 16),
 		}, row)
-		componentElements.Corner(track)
-		componentElements.Stroke(track)
-		componentElements.Make("UIGradient", {
-			Color = ColorSequence.new(value and COLORS.Accent or COLORS.Muted, COLORS.Interactive),
-			Rotation = 90,
-		}, track)
+		componentElements.Corner(track, 20)
+		componentElements.Stroke(track, 0.975)
+		local trackColor = value and COLORS.ToggleOn or Color3.fromRGB(69, 69, 73)
+		local trackGradient = componentElements.Gradient(track, trackColor, trackColor:Lerp(Color3.new(0, 0, 0), 0.18)) :: UIGradient
 		local knob = componentElements.Make("Frame", {
 			AnchorPoint = Vector2.new(0, 0.5),
-			BackgroundColor3 = COLORS.Background,
+			BackgroundColor3 = Color3.fromRGB(238, 238, 240),
 			BorderSizePixel = 0,
-			Position = value and UDim2.new(1, -17, 0.5, 0) or UDim2.new(0, 3, 0.5, 0),
-			Size = UDim2.fromOffset(13, 13),
+			Position = value and UDim2.new(1, -13, 0.5, 0) or UDim2.new(0, 3, 0.5, 0),
+			Size = UDim2.fromOffset(10, 10),
 		}, track)
-		componentElements.Corner(knob)
+		componentElements.Corner(knob, 5)
 		componentElements.Stroke(knob)
 		local hitbox = componentElements.Make("TextButton", {
 			BackgroundTransparency = 1,
@@ -243,17 +268,19 @@ local Elements = (function()
 			Text = "",
 		}, row) :: TextButton
 		componentElements.Corner(hitbox)
-		componentElements.Stroke(hitbox)
 		componentElements.AddPressFeedback(hitbox, row)
 		local toggle = { Value = value, Frame = row }
 		local function setValue(nextValue: boolean, fireCallback: boolean?)
 			value = nextValue == true
 			toggle.Value = value
-			componentElements.Tween(track, Theme.HoverDuration, {
-				BackgroundColor3 = value and COLORS.Accent or COLORS.Muted,
-			})
+			trackColor = value and COLORS.ToggleOn or Color3.fromRGB(69, 69, 73)
+			componentElements.Tween(track, Theme.HoverDuration, { BackgroundColor3 = trackColor })
+			trackGradient.Color = ColorSequence.new(
+				Color3.new(1, 1, 1),
+				componentElements.GradientTint(trackColor, trackColor:Lerp(Color3.new(0, 0, 0), 0.18))
+			)
 			componentElements.Tween(knob, Theme.HoverDuration, {
-				Position = value and UDim2.new(1, -17, 0.5, 0) or UDim2.new(0, 3, 0.5, 0),
+				Position = value and UDim2.new(1, -13, 0.5, 0) or UDim2.new(0, 3, 0.5, 0),
 			})
 			if fireCallback ~= false then
 				componentElements.SafeCallback(owner, options.Callback, value)
@@ -283,15 +310,12 @@ local Elements = (function()
 		local row = componentElements.Make("Frame", {
 			BackgroundColor3 = COLORS.Interactive,
 			BorderSizePixel = 0,
-			Size = UDim2.new(1, 0, 0, 62),
+			Size = UDim2.new(1, 0, 0, 56),
 		}, parent)
-		componentElements.Corner(row)
+		componentElements.Corner(row, 8)
 		componentElements.Stroke(row)
-		componentElements.Make("UIGradient", {
-			Color = ColorSequence.new(Color3.fromRGB(34, 34, 40), COLORS.Interactive),
-			Rotation = 90,
-		}, row)
-		local name = componentElements.TextLabel(row, options.Name, 12, COLORS.Text, Enum.Font.GothamMedium)
+		componentElements.Gradient(row, COLORS.Interactive, Color3.fromRGB(34, 34, 36))
+		local name = componentElements.TextLabel(row, options.Name, 10, COLORS.Text, Enum.Font.GothamMedium)
 		name.Position = UDim2.fromOffset(14, 4)
 		name.Size = UDim2.new(1, -100, 0, 22)
 		local valueBox = componentElements.Make("TextBox", {
@@ -299,28 +323,37 @@ local Elements = (function()
 			BackgroundColor3 = COLORS.Background,
 			Font = Enum.Font.Gotham,
 			Position = UDim2.new(1, -12, 0, 5),
-			Size = UDim2.fromOffset(62, 22),
+			Size = UDim2.fromOffset(56, 20),
 			Text = tostring(value),
 			TextColor3 = COLORS.Text,
-			TextSize = 11,
+			TextSize = 10,
 		}, row) :: TextBox
-		componentElements.Corner(valueBox)
+		componentElements.Corner(valueBox, 20)
 		componentElements.Stroke(valueBox)
 		local bar = componentElements.Make("Frame", {
 			BackgroundColor3 = COLORS.Background,
 			BorderSizePixel = 0,
-			Position = UDim2.new(0, 14, 0, 39),
-			Size = UDim2.new(1, -28, 0, 8),
+			Position = UDim2.new(0, 12, 0, 36),
+			Size = UDim2.new(1, -24, 0, 5),
 		}, row)
-		componentElements.Corner(bar)
+		componentElements.Corner(bar, 20)
 		componentElements.Stroke(bar)
 		local fill = componentElements.Make("Frame", {
-			BackgroundColor3 = COLORS.Accent,
+			BackgroundColor3 = COLORS.Primary,
 			BorderSizePixel = 0,
 			Size = UDim2.new((value - minimum) / (maximum - minimum), 0, 1, 0),
 		}, bar)
-		componentElements.Corner(fill)
-		componentElements.Stroke(fill)
+		componentElements.Corner(fill, 20)
+		local thumb = componentElements.Make("Frame", {
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			BackgroundColor3 = Color3.fromRGB(248, 248, 249),
+			BorderSizePixel = 0,
+			Position = UDim2.new(1, 0, 0.5, 0),
+			Size = UDim2.fromOffset(14, 14),
+			ZIndex = bar.ZIndex + 2,
+		}, fill)
+		componentElements.Corner(thumb, 7)
+		componentElements.Stroke(thumb, 0.9)
 		local sliderButton = componentElements.Make("TextButton", {
 			Active = true,
 			BackgroundTransparency = 1,
@@ -329,7 +362,6 @@ local Elements = (function()
 			Text = "",
 		}, row) :: TextButton
 		componentElements.Corner(sliderButton)
-		componentElements.Stroke(sliderButton)
 		componentElements.AddPressFeedback(sliderButton, row)
 		local slider = { Value = value, Frame = row }
 		local function formatValue(number: number)
@@ -348,6 +380,7 @@ local Elements = (function()
 			slider.Value = value
 			local alpha = (value - minimum) / (maximum - minimum)
 			componentElements.Tween(fill, 0.08, { Size = UDim2.new(alpha, 0, 1, 0) })
+			thumb.Position = UDim2.new(1, 0, 0.5, 0)
 			valueBox.Text = formatValue(value)
 			if fireCallback ~= false then
 				componentElements.SafeCallback(owner, options.Callback, value)
@@ -647,25 +680,28 @@ function HavocLib.new(options: {[string]: any}?)
 	table.insert(window._connections, cameraConnection)
 	connectViewport()
 	corner(root)
-	stroke(root)
-	make("UIGradient", {
-		Color = ColorSequence.new({
-			ColorSequenceKeypoint.new(0, Color3.fromRGB(24, 24, 29)),
-			ColorSequenceKeypoint.new(1, COLORS.Background),
-		}),
-		Rotation = 90,
-	}, root)
+	stroke(root, 0.87)
+	Elements.Gradient(root, COLORS.Background, Color3.fromRGB(12, 12, 13), 145)
 	local rootScale = make("UIScale", { Scale = Theme.OpenScale }, root) :: UIScale
 	window._scale = rootScale
 	window._open = true
 
 	local header = make("Frame", {
-		BackgroundTransparency = 1,
+		BackgroundColor3 = Color3.fromRGB(22, 22, 23),
 		Position = UDim2.fromScale(0, 0),
-		Size = UDim2.new(1, 0, 0, 40),
+		Size = UDim2.new(1, 0, 0, 39),
 	}, root)
 	window.Header = header
-	padding(header, 14, 0)
+	padding(header, 9, 0)
+	Elements.Gradient(header, Color3.fromRGB(22, 22, 23), Color3.fromRGB(17, 17, 18))
+	make("Frame", {
+		AnchorPoint = Vector2.new(0, 1),
+		BackgroundColor3 = Color3.fromRGB(42, 42, 44),
+		BackgroundTransparency = 0.55,
+		BorderSizePixel = 0,
+		Position = UDim2.new(0, 0, 1, 0),
+		Size = UDim2.new(1, 0, 0, 1),
+	}, header)
 	if config.Logo ~= nil then
 		assert(
 			(type(config.Logo) == "number" and config.Logo > 0)
@@ -677,32 +713,34 @@ function HavocLib.new(options: {[string]: any}?)
 			BorderSizePixel = 0,
 			Image = type(config.Logo) == "number" and ("rbxassetid://" .. tostring(config.Logo)) or config.Logo,
 			ScaleType = Enum.ScaleType.Crop,
-			Size = UDim2.fromOffset(26, 26),
+			Size = UDim2.fromOffset(21, 21),
 		}, header) :: ImageLabel
 		corner(logoImage)
+		local logoCorner = logoImage:FindFirstChildOfClass("UICorner")
+		if logoCorner then logoCorner.CornerRadius = UDim.new(0, 6) end
 		stroke(logoImage)
 	else
 		local logo = make("Frame", {
 			BackgroundColor3 = COLORS.Interactive,
 			BorderSizePixel = 0,
-			Size = UDim2.fromOffset(26, 26),
+			Size = UDim2.fromOffset(21, 21),
 		}, header)
-		corner(logo)
+		corner(logo, 6)
 		stroke(logo)
 		local monogram = textLabel(logo, "h", 16, COLORS.Text, Enum.Font.GothamBold)
 		monogram.Size = UDim2.fromScale(1, 1)
 		monogram.TextXAlignment = Enum.TextXAlignment.Center
 	end
-	local title = textLabel(header, config.Title or "havoc lib", 13, COLORS.Text, Enum.Font.GothamBold)
-	title.Position = UDim2.fromOffset(34, 2)
-	title.Size = UDim2.new(0.25, 0, 0, 16)
+	local title = textLabel(header, config.Title or "havoc lib", 11, COLORS.Text, Enum.Font.GothamBold)
+	title.Position = UDim2.fromOffset(29, 2)
+	title.Size = UDim2.new(0.25, 0, 0, 15)
 	local subtitle = textLabel(header, config.Subtitle or "made by convict", 8, COLORS.Muted)
-	subtitle.Position = UDim2.fromOffset(34, 18)
+	subtitle.Position = UDim2.fromOffset(29, 17)
 	subtitle.Size = UDim2.new(0.25, 0, 0, 12)
 	local version = textLabel(header, config.Version or "v0.1.0", 9, COLORS.Muted, Enum.Font.GothamMedium)
 	version.AnchorPoint = Vector2.new(0, 0.5)
-	version.Position = UDim2.new(0.3, 0, 0.5, 0)
-	version.Size = UDim2.fromOffset(48, 20)
+	version.Position = UDim2.new(0.31, 0, 0.5, 0)
+	version.Size = UDim2.fromOffset(42, 19)
 	version.BackgroundColor3 = COLORS.Interactive
 	corner(version)
 	stroke(version)
@@ -733,7 +771,7 @@ function HavocLib.new(options: {[string]: any}?)
 		AnchorPoint = Vector2.new(1, 0.5),
 		BackgroundTransparency = 1,
 		Position = UDim2.new(1, 0, 0.5, 0),
-		Size = UDim2.fromOffset(72, 24),
+		Size = UDim2.fromOffset(69, 22),
 	}, header)
 	local actionsLayout = make("UIListLayout", {
 		FillDirection = Enum.FillDirection.Horizontal,
@@ -750,6 +788,19 @@ function HavocLib.new(options: {[string]: any}?)
 	local closeButton = button(windowActions, "×", UDim2.fromOffset(21, 22), COLORS.Interactive)
 	closeButton.TextSize = 14
 	closeButton.LayoutOrder = 3
+	for _, actionButton in ipairs({ minimizeButton, maximizeButton, closeButton }) do
+		actionButton.BackgroundTransparency = 1
+		local actionStroke = actionButton:FindFirstChildOfClass("UIStroke")
+		if actionStroke then actionStroke.Transparency = 1 end
+		local actionCorner = actionButton:FindFirstChildOfClass("UICorner")
+		if actionCorner then actionCorner.CornerRadius = UDim.new(0, 5) end
+		actionButton.MouseEnter:Connect(function()
+			actionButton.BackgroundTransparency = 0
+		end)
+		actionButton.MouseLeave:Connect(function()
+			actionButton.BackgroundTransparency = 1
+		end)
+	end
 	window._expandedSize = root.Size
 	window._expandedPosition = root.Position
 	window._minimized = false
@@ -757,30 +808,24 @@ function HavocLib.new(options: {[string]: any}?)
 
 	local body = make("Frame", {
 		BackgroundTransparency = 1,
-		Position = UDim2.new(0, 0, 0, 40),
-		Size = UDim2.new(1, 0, 1, config.ShowMetrics == true and -70 or -40),
+		Position = UDim2.new(0, 0, 0, 39),
+		Size = UDim2.new(1, 0, 1, config.ShowMetrics == true and -69 or -39),
 	}, root)
 	window.Body = body
 	local sidebar = make("Frame", {
-		BackgroundColor3 = COLORS.Background,
-		BackgroundTransparency = 0.12,
+		BackgroundColor3 = Color3.fromRGB(18, 18, 19),
+		BackgroundTransparency = 0,
 		BorderSizePixel = 0,
 		Position = UDim2.fromScale(0, 0),
 		Size = UDim2.new(0, 164, 1, 0),
 	}, body)
-	corner(sidebar)
-	stroke(sidebar)
-	make("UIGradient", {
-		Color = ColorSequence.new(Color3.fromRGB(25, 25, 30), COLORS.Container),
-		Rotation = 90,
-	}, sidebar)
 	local tabList = make("Frame", {
 		BackgroundTransparency = 1,
-		Position = UDim2.fromOffset(14, 14),
-		Size = UDim2.new(1, -28, 1, -28),
+		Position = UDim2.fromOffset(6, 8),
+		Size = UDim2.new(1, -12, 1, -16),
 	}, sidebar)
 	local tabLayout = make("UIListLayout", {
-		Padding = UDim.new(0, 8),
+		Padding = UDim.new(0, 1),
 		SortOrder = Enum.SortOrder.LayoutOrder,
 	}, tabList) :: UIListLayout
 	window._tabList = tabList
@@ -791,6 +836,13 @@ function HavocLib.new(options: {[string]: any}?)
 		Size = UDim2.new(1, -164, 1, 0),
 	}, body)
 	window.Content = content
+	make("Frame", {
+		BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+		BackgroundTransparency = 0.955,
+		BorderSizePixel = 0,
+		Position = UDim2.new(0, 163, 0, 0),
+		Size = UDim2.new(0, 1, 1, 0),
+	}, body)
 
 	local status = make("Frame", {
 		BackgroundTransparency = 1,
@@ -907,6 +959,22 @@ function HavocLib.new(options: {[string]: any}?)
 			end
 			tab._button.Visible = tabNameMatches or tab._matches(query)
 		end
+		for index, tab in ipairs(window._tabs) do
+			if tab._caption then
+				local groupHasVisibleTab = false
+				for candidateIndex = index, #window._tabs do
+					local candidate = window._tabs[candidateIndex]
+					if candidateIndex > index and candidate._caption then
+						break
+					end
+					if candidate._button.Visible then
+						groupHasVisibleTab = true
+						break
+					end
+				end
+				tab._caption.Visible = groupHasVisibleTab
+			end
+		end
 		if window._activeTab and not window._activeTab._button.Visible then
 			for _, tab in ipairs(window._tabs) do
 				if tab._button.Visible then
@@ -917,6 +985,9 @@ function HavocLib.new(options: {[string]: any}?)
 		end
 		for _, tab in ipairs(window._tabs) do
 			tab._page.Visible = tab == window._activeTab and tab._button.Visible
+			if tab._emptyState then
+				tab._emptyState.Visible = tab._page.Visible and #tab._cards == 0
+			end
 		end
 	end
 	search:GetPropertyChangedSignal("Text"):Connect(window._applySearch)
@@ -939,24 +1010,37 @@ function Window:Tab(options: {[string]: any})
 		_cards = {},
 		_sections = {},
 	}, Tab)
+	if type(options.CaptionBefore) == "string" and options.CaptionBefore ~= "" then
+		local caption = make("Frame", {
+			BackgroundTransparency = 1,
+			Size = UDim2.new(1, 0, 0, 22),
+		}, self._tabList) :: Frame
+		local captionLabel = textLabel(caption, options.CaptionBefore, 9, Color3.fromRGB(116, 116, 120))
+		captionLabel.Position = UDim2.new(0, 8, 0, 8)
+		captionLabel.Size = UDim2.new(1, -16, 0, 11)
+		tab._caption = caption
+	end
 
 	local tabButton = make("TextButton", {
 		AutoButtonColor = false,
 		BackgroundColor3 = COLORS.Container,
 		BorderSizePixel = 0,
-		Size = UDim2.new(1, 0, 0, 36),
+		Size = UDim2.new(1, 0, 0, 31),
 		Text = "",
 	}, self._tabList) :: TextButton
 	tab._button = tabButton
-	tabButton.BackgroundTransparency = 0.35
+	tabButton.BackgroundColor3 = Color3.fromRGB(37, 37, 39)
+	tabButton.BackgroundTransparency = 1
 	corner(tabButton)
-	stroke(tabButton)
-	addPressFeedback(tabButton)
+	local tabCorner = tabButton:FindFirstChildOfClass("UICorner")
+	if tabCorner then tabCorner.CornerRadius = UDim.new(0, 6) end
+	local tabStroke = stroke(tabButton)
+	tabStroke.Transparency = 1
 	local icon = iconImage(tabButton, options.Icon or options.Name, 16)
 	icon.AnchorPoint = Vector2.new(0.5, 0.5)
 	icon.Position = UDim2.new(0, 17, 0.5, 0)
 	icon.Size = UDim2.fromOffset(16, 16)
-	local label = textLabel(tabButton, string.lower(options.Name), 11, COLORS.Muted, Enum.Font.GothamMedium)
+	local label = textLabel(tabButton, string.lower(options.Name), 10, COLORS.Muted, Enum.Font.GothamMedium)
 	label.Position = UDim2.fromOffset(34, 0)
 	label.Size = UDim2.new(1, -61, 1, 0)
 	local badge = textLabel(tabButton, "", 10, COLORS.Text, Enum.Font.GothamBold)
@@ -978,24 +1062,41 @@ function Window:Tab(options: {[string]: any})
 		Size = UDim2.new(0, 3, 0, 0),
 	}, tabButton)
 	corner(indicator)
+	indicator.Visible = false
 	tab._indicator = indicator
 
 	local page = make("ScrollingFrame", {
 		Active = true,
 		AutomaticCanvasSize = Enum.AutomaticSize.None,
-		BackgroundColor3 = COLORS.Container,
-		BackgroundTransparency = Theme.PanelTransparency,
+		BackgroundColor3 = Color3.fromRGB(26, 26, 27),
+		BackgroundTransparency = 0,
 		BorderSizePixel = 0,
 		CanvasSize = UDim2.new(),
-		ScrollBarImageColor3 = COLORS.Accent,
+		ScrollBarImageColor3 = Color3.fromRGB(70, 70, 73),
 		ScrollBarThickness = 3,
 		Size = UDim2.fromScale(1, 1),
 		Visible = false,
 	}, self.Content) :: ScrollingFrame
 	tab._page = page
-	corner(page)
-	stroke(page)
-	padding(page, Theme.Padding)
+	Elements.Gradient(page, Color3.fromRGB(26, 26, 27), Color3.fromRGB(24, 24, 25))
+	if type(options.EmptyText) == "string" and options.EmptyText ~= "" then
+		local emptyState = make("Frame", {
+			Active = false,
+			BackgroundTransparency = 1,
+			Position = page.Position,
+			Size = page.Size,
+			Visible = false,
+			ZIndex = page.ZIndex + 1,
+		}, self.Content) :: Frame
+		local emptyLabel = textLabel(emptyState, options.EmptyText, 10, Color3.fromRGB(119, 119, 123))
+		emptyLabel.ZIndex = emptyState.ZIndex + 1
+		emptyLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+		emptyLabel.Position = UDim2.fromScale(0.5, 0.5)
+		emptyLabel.Size = UDim2.new(1, -32, 0, 24)
+		emptyLabel.TextXAlignment = Enum.TextXAlignment.Center
+		tab._emptyState = emptyState
+	end
+	padding(page, Theme.Padding, 15)
 	local pageLayout = make("UIListLayout", {
 		Padding = UDim.new(0, 10),
 		SortOrder = Enum.SortOrder.LayoutOrder,
@@ -1010,10 +1111,14 @@ function Window:Tab(options: {[string]: any})
 		return false
 	end
 	tabButton.MouseEnter:Connect(function()
-		if self._activeTab ~= tab then tween(tabButton, Theme.HoverDuration, { BackgroundColor3 = COLORS.Interactive }) end
+		if self._activeTab ~= tab then
+			tween(tabButton, Theme.HoverDuration, { BackgroundTransparency = 0.35 })
+		end
 	end)
 	tabButton.MouseLeave:Connect(function()
-		if self._activeTab ~= tab then tween(tabButton, Theme.HoverDuration, { BackgroundColor3 = COLORS.Container }) end
+		if self._activeTab ~= tab then
+			tween(tabButton, Theme.HoverDuration, { BackgroundTransparency = 1 })
+		end
 	end)
 	tabButton.MouseButton1Click:Connect(function()
 		self:SelectTab(tab)
@@ -1031,7 +1136,15 @@ function Window:SelectTab(tab: any)
 	for _, item in ipairs(self._tabs) do
 		local active = item == tab
 		item._page.Visible = active
-		tween(item._button, Theme.HoverDuration, { BackgroundColor3 = active and COLORS.Interactive or COLORS.Container })
+		if item._emptyState then
+			item._emptyState.Visible = active and #item._cards == 0
+		end
+		tween(item._button, Theme.HoverDuration, {
+			BackgroundColor3 = Color3.fromRGB(37, 37, 39),
+			BackgroundTransparency = active and 0 or 1,
+		})
+		local itemStroke = item._button:FindFirstChildOfClass("UIStroke")
+		if itemStroke then itemStroke.Transparency = active and 0.955 or 1 end
 		tween(item._indicator, 0.18, { Size = UDim2.new(0, 3, 0, active and 20 or 0) })
 		for _, child in ipairs(item._button:GetDescendants()) do
 			if child:IsA("TextLabel") and child ~= item.Badge then
@@ -1058,41 +1171,41 @@ function Tab:Section(options: {[string]: any})
 	local sectionOptions = if type(options) == "string" then { Name = options } else (options or {})
 	local frame = make("Frame", {
 		AutomaticSize = Enum.AutomaticSize.Y,
-		BackgroundColor3 = COLORS.Container,
+		BackgroundColor3 = sectionOptions.BackgroundColor or COLORS.Container,
 		BackgroundTransparency = Theme.PanelTransparency,
 		BorderSizePixel = 0,
 		Size = UDim2.new(1, 0, 0, 0),
 	}, self._page) :: Frame
 	corner(frame)
 	stroke(frame)
-	padding(frame, Theme.Padding)
-	make("UIGradient", {
-		Color = ColorSequence.new(Color3.fromRGB(28, 28, 33), COLORS.Container),
-		Rotation = 90,
-	}, frame)
+	padding(frame, 11)
+	local sectionColor = sectionOptions.BackgroundColor or COLORS.Container
+	local sectionGradient = sectionOptions.GradientColor or Color3.fromRGB(28, 28, 30)
+	Elements.Gradient(frame, sectionColor, sectionGradient)
 	local layout = make("UIListLayout", {
 		Padding = UDim.new(0, 8),
 		SortOrder = Enum.SortOrder.LayoutOrder,
 	}, frame) :: UIListLayout
 	local headingRow = make("Frame", {
 		BackgroundTransparency = 1,
-		Size = UDim2.new(1, 0, 0, 26),
+		Size = UDim2.new(1, 0, 0, 18),
 		LayoutOrder = -1,
 	}, frame)
 	local icon = iconImage(headingRow, sectionOptions.Icon or sectionOptions.Name or "layers", 16)
 	icon.AnchorPoint = Vector2.new(0.5, 0.5)
 	icon.Position = UDim2.new(0, 8, 0.5, 0)
 	icon.Size = UDim2.fromOffset(16, 16)
-	local heading = textLabel(headingRow, string.lower(sectionOptions.Name or "Section"), 12, COLORS.Text, Enum.Font.GothamBold)
+	local headingText = string.lower(sectionOptions.Name or "Section")
+	local heading = textLabel(headingRow, headingText, 11, COLORS.Text, Enum.Font.GothamBold)
 	heading.Position = UDim2.fromOffset(24, 0)
 	heading.Size = UDim2.new(1, -24, 1, 0)
 	local divider = make("Frame", {
-		AnchorPoint = Vector2.new(1, 0.5),
+		AnchorPoint = Vector2.new(0, 0.5),
 		BackgroundColor3 = COLORS.Border,
 		BackgroundTransparency = 0.35,
 		BorderSizePixel = 0,
-		Position = UDim2.new(1, 0, 0.5, 0),
-		Size = UDim2.new(0.24, 0, 0, 1),
+		Position = UDim2.new(0, 0, 0.5, 0),
+		Size = UDim2.new(0, 0, 0, 1),
 	}, headingRow)
 	make("UIGradient", {
 		Transparency = NumberSequence.new({
@@ -1100,6 +1213,19 @@ function Tab:Section(options: {[string]: any})
 			NumberSequenceKeypoint.new(1, 1),
 		}),
 	}, divider)
+	local headingWidth = TextService:GetTextSize(
+		headingText,
+		11,
+		Enum.Font.GothamBold,
+		Vector2.new(1000, 18)
+	).X
+	local function updateDivider()
+		local dividerStart = math.min(26 + headingWidth, headingRow.AbsoluteSize.X)
+		divider.Position = UDim2.new(0, dividerStart, 0.5, 0)
+		divider.Size = UDim2.new(0, math.max(0, headingRow.AbsoluteSize.X - dividerStart), 0, 1)
+	end
+	headingRow:GetPropertyChangedSignal("AbsoluteSize"):Connect(updateDivider)
+	updateDivider()
 	local section = setmetatable({
 		_tab = self,
 		_window = self._window,
@@ -1113,6 +1239,9 @@ end
 
 function Section:_register(frame: Instance, searchText: string)
 	table.insert(self._tab._cards, { _frame = frame, _searchText = self._title .. " " .. searchText })
+	if self._tab._emptyState then
+		self._tab._emptyState.Visible = false
+	end
 	self._window._applySearch()
 	return frame
 end
@@ -1145,15 +1274,22 @@ function Section:Paragraph(options: {[string]: any})
 		BackgroundTransparency = 1,
 		Size = UDim2.new(1, 0, 0, 0),
 	}, self._frame)
-	local title = textLabel(paragraph, options.Name, options.TitleSize or 14, COLORS.Text, Enum.Font.GothamMedium)
-	title.Size = UDim2.new(1, 0, 0, 20)
+	local title
+	if options.HideTitle ~= true then
+		title = textLabel(paragraph, options.Name, options.TitleSize or 14, COLORS.Text, Enum.Font.GothamMedium)
+		title.Size = UDim2.new(1, 0, 0, 20)
+	end
 	local content = Elements.Paragraph(paragraph, options)
 	local paragraphLayout = make("UIListLayout", {
-		Padding = UDim.new(0, 4),
+		Padding = UDim.new(0, title and 4 or 0),
 		SortOrder = Enum.SortOrder.LayoutOrder,
 	}, paragraph)
-	title.LayoutOrder = 1
-	content.LayoutOrder = 2
+	if title then
+		title.LayoutOrder = 1
+		content.LayoutOrder = 2
+	else
+		content.LayoutOrder = 1
+	end
 	paragraphLayout.Name = "ParagraphLayout"
 	self:_register(paragraph, options.Name .. " " .. (options.Content or ""))
 	return paragraph
@@ -1166,7 +1302,7 @@ function Section:Buttons(options: {[string]: any})
 	local gap = options.Gap or 8
 	local row = make("Frame", {
 		BackgroundTransparency = 1,
-		Size = UDim2.new(1, 0, 0, options.Height or 38),
+		Size = UDim2.new(1, 0, 0, options.Height or 32),
 	}, self._frame)
 	local layout = make("UIListLayout", {
 		FillDirection = Enum.FillDirection.Horizontal,
@@ -1178,7 +1314,7 @@ function Section:Buttons(options: {[string]: any})
 		assert(type(item) == "table" and type(item.Name) == "string", "Each button requires a Name")
 		local widthScale = 1 / #items
 		local buttonOptions = table.clone(item)
-		buttonOptions.Size = UDim2.new(widthScale, -gap * (#items - 1) / #items, 0, options.Height or 38)
+		buttonOptions.Size = UDim2.new(widthScale, -gap * (#items - 1) / #items, 0, options.Height or 32)
 		Elements.ActionButton(row, buttonOptions, self._window._library).LayoutOrder = index
 	end
 	layout.Name = "ButtonLayout"
@@ -1196,7 +1332,7 @@ function Section:Row(options: {[string]: any})
 	assert(#items > 0, "Row requires at least one item")
 	local columns = math.clamp(math.floor(options.Columns or #items), 1, #items)
 	local gap = options.Gap or 8
-	local itemHeight = options.Height or 40
+	local itemHeight = options.Height or 34
 	local row = make("Frame", {
 		BackgroundTransparency = 1,
 		Size = UDim2.new(1, 0, 0, itemHeight),
@@ -1384,10 +1520,7 @@ function Section:Input(options: {[string]: any})
 	}, self._frame)
 	corner(row)
 	stroke(row)
-	make("UIGradient", {
-		Color = ColorSequence.new(Color3.fromRGB(34, 34, 40), COLORS.Interactive),
-		Rotation = 90,
-	}, row)
+	Elements.Gradient(row, COLORS.Interactive, Color3.fromRGB(34, 34, 36))
 	local label = textLabel(row, options.Name, 12, COLORS.Text, Enum.Font.GothamMedium)
 	label.Position = UDim2.fromOffset(10, 2)
 	label.Size = UDim2.new(1, -20, 0, 22)
@@ -1462,7 +1595,7 @@ function Section:ColorPicker(options: {[string]: any})
 		BackgroundTransparency = 0.04,
 		BorderSizePixel = 0,
 		ClipsDescendants = true,
-		Position = UDim2.new(0, 0, 0, 40),
+		Position = UDim2.new(0, 0, 0, 39),
 		Size = UDim2.new(1, 0, 0, 124),
 		Visible = false,
 	}, holder)
@@ -1478,9 +1611,6 @@ function Section:ColorPicker(options: {[string]: any})
 	}, picker) :: TextButton
 	corner(saturationCanvas)
 	stroke(saturationCanvas)
-	local saturationGradient = make("UIGradient", {
-		Color = ColorSequence.new(Color3.new(1, 1, 1), Color3.fromHSV(hue, 1, 1)),
-	}, saturationCanvas) :: UIGradient
 	local whiteOverlay = make("Frame", {
 		BackgroundColor3 = Color3.new(1, 1, 1),
 		BorderSizePixel = 0,
@@ -1552,7 +1682,6 @@ function Section:ColorPicker(options: {[string]: any})
 		colorPicker.Value = color
 		preview.BackgroundColor3 = color
 		saturationCanvas.BackgroundColor3 = Color3.fromHSV(hue, 1, 1)
-		saturationGradient.Color = ColorSequence.new(Color3.new(1, 1, 1), Color3.fromHSV(hue, 1, 1))
 		selector.Position = UDim2.fromScale(saturation, 1 - brightness)
 		hueMarker.Position = UDim2.new(0.5, 0, hue, 0)
 		if fireCallback ~= false then safeCallback(self._window._library, options.Callback, color) end
@@ -1849,14 +1978,14 @@ function HavocLib:Notify(options: {[string]: any})
 	local host = self._notificationHost
 	if not host then
 		host = make("Frame", {
-			AnchorPoint = Vector2.new(1, 1),
+			AnchorPoint = Vector2.new(0.5, 1),
 			BackgroundTransparency = 1,
-			Position = UDim2.new(1, -18, 1, -18),
-			Size = UDim2.new(0, 310, 1, -36),
+			Position = UDim2.new(0.5, 0, 1, -15),
+			Size = UDim2.new(0, 310, 0, 190),
 		}, self.ScreenGui)
 		self._notificationHost = host
 		make("UIListLayout", {
-			HorizontalAlignment = Enum.HorizontalAlignment.Right,
+			HorizontalAlignment = Enum.HorizontalAlignment.Center,
 			Padding = UDim.new(0, 8),
 			SortOrder = Enum.SortOrder.LayoutOrder,
 			VerticalAlignment = Enum.VerticalAlignment.Bottom,
