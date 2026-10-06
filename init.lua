@@ -1478,9 +1478,9 @@ function Section:ColorPicker(options: {[string]: any})
 	}, picker) :: TextButton
 	corner(saturationCanvas)
 	stroke(saturationCanvas)
-	make("UIGradient", {
+	local saturationGradient = make("UIGradient", {
 		Color = ColorSequence.new(Color3.new(1, 1, 1), Color3.fromHSV(hue, 1, 1)),
-	}, saturationCanvas)
+	}, saturationCanvas) :: UIGradient
 	local whiteOverlay = make("Frame", {
 		BackgroundColor3 = Color3.new(1, 1, 1),
 		BorderSizePixel = 0,
@@ -1552,7 +1552,7 @@ function Section:ColorPicker(options: {[string]: any})
 		colorPicker.Value = color
 		preview.BackgroundColor3 = color
 		saturationCanvas.BackgroundColor3 = Color3.fromHSV(hue, 1, 1)
-		(saturationCanvas:FindFirstChildOfClass("UIGradient") :: UIGradient).Color = ColorSequence.new(Color3.new(1, 1, 1), Color3.fromHSV(hue, 1, 1))
+		saturationGradient.Color = ColorSequence.new(Color3.new(1, 1, 1), Color3.fromHSV(hue, 1, 1))
 		selector.Position = UDim2.fromScale(saturation, 1 - brightness)
 		hueMarker.Position = UDim2.new(0.5, 0, hue, 0)
 		if fireCallback ~= false then safeCallback(self._window._library, options.Callback, color) end
