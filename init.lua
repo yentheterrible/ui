@@ -22,24 +22,25 @@ Theme.Colors = {
 	Success = Color3.fromRGB(220, 220, 226),
 }
 
-Theme.CornerRadius = UDim.new(0, 10)
+Theme.CornerRadius = UDim.new(0, 12)
 Theme.Stroke = {
 	Color = Color3.fromRGB(255, 255, 255),
 	Thickness = 1,
-	Transparency = 0.89,
+	Transparency = 0.86,
 	ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+	LineJoinMode = Enum.LineJoinMode.Round,
 }
 Theme.PanelTransparency = 0
-Theme.HoverDuration = 0.12
-Theme.PressScale = 0.96
-Theme.OpenScale = 0.94
+Theme.HoverDuration = 0.18
+Theme.PressScale = 0.975
+Theme.OpenScale = 0.97
 Theme.Padding = 16
 Theme.Animation = {
-	Hover = TweenInfo.new(Theme.HoverDuration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-	Press = TweenInfo.new(0.08, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-	Release = TweenInfo.new(0.18, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
-	Open = TweenInfo.new(0.24, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
-	Fade = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+	Hover = TweenInfo.new(Theme.HoverDuration, Enum.EasingStyle.Sine, Enum.EasingDirection.Out),
+	Press = TweenInfo.new(0.1, Enum.EasingStyle.Sine, Enum.EasingDirection.Out),
+	Release = TweenInfo.new(0.2, Enum.EasingStyle.Sine, Enum.EasingDirection.Out),
+	Open = TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
+	Fade = TweenInfo.new(0.24, Enum.EasingStyle.Sine, Enum.EasingDirection.Out),
 }
 
 local Elements = (function()
@@ -109,7 +110,7 @@ local Elements = (function()
 	function componentElements.Tween(object: Instance, duration: number, properties: {[string]: any}, style: Enum.EasingStyle?)
 		local animation = TweenService:Create(
 			object,
-			TweenInfo.new(duration, style or Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+			TweenInfo.new(duration, style or Enum.EasingStyle.Sine, Enum.EasingDirection.Out),
 			properties
 		)
 		animation:Play()
@@ -119,19 +120,33 @@ local Elements = (function()
 	function componentElements.AddPressFeedback(button: GuiButton, scaleTarget: GuiObject?)
 		local scale = componentElements.Make("UIScale", { Scale = 1 }, scaleTarget or button)
 		local baseColor = button.BackgroundColor3
+		local buttonStroke = button:FindFirstChildOfClass("UIStroke")
+		local baseStrokeColor = if buttonStroke then buttonStroke.Color else COLORS.Border
 		button.MouseEnter:Connect(function()
 			componentElements.Tween(button, Theme.HoverDuration, {
 				BackgroundColor3 = baseColor:Lerp(Color3.new(1, 1, 1), 0.08),
 			})
+			if buttonStroke then
+				componentElements.Tween(buttonStroke, Theme.HoverDuration, {
+					Color = baseStrokeColor:Lerp(Color3.new(1, 1, 1), 0.18),
+					Transparency = 0.72,
+				})
+			end
 		end)
 		button.MouseLeave:Connect(function()
 			componentElements.Tween(button, Theme.HoverDuration, { BackgroundColor3 = baseColor })
+			if buttonStroke then
+				componentElements.Tween(buttonStroke, Theme.HoverDuration, {
+					Color = baseStrokeColor,
+					Transparency = Theme.Stroke.Transparency,
+				})
+			end
 		end)
 		button.MouseButton1Down:Connect(function()
-			componentElements.Tween(scale, Theme.Animation.Press.Time, { Scale = Theme.PressScale }, Enum.EasingStyle.Quad)
+			componentElements.Tween(scale, Theme.Animation.Press.Time, { Scale = Theme.PressScale }, Enum.EasingStyle.Sine)
 		end)
 		local function release()
-			componentElements.Tween(scale, Theme.Animation.Release.Time, { Scale = 1 }, Enum.EasingStyle.Back)
+			componentElements.Tween(scale, Theme.Animation.Release.Time, { Scale = 1 }, Enum.EasingStyle.Sine)
 		end
 		button.MouseButton1Up:Connect(release)
 		button.MouseButton1Click:Connect(release)
@@ -160,7 +175,7 @@ local Elements = (function()
 			TextColor3 = COLORS.Text,
 			TextSize = 11,
 		}, parent) :: TextButton
-		componentElements.Corner(element, 8)
+		componentElements.Corner(element, 9)
 		componentElements.Stroke(element)
 		componentElements.AddPressFeedback(element)
 		return element
@@ -199,7 +214,7 @@ local Elements = (function()
 		if not options.TextColor and luminance > 0.55 then
 			textColor = COLORS.Background
 		end
-		local 		Size = options.Size or UDim2.new(1, 0, 0, options.Height or 34)
+		local size = options.Size or UDim2.new(1, 0, 0, options.Height or 34)
 		local element = componentElements.Button(parent, options.Name, size, backgroundColor)
 		element.BackgroundColor3 = backgroundColor
 		element.TextColor3 = textColor
@@ -236,7 +251,7 @@ local Elements = (function()
 			BorderSizePixel = 0,
 			Size = options.Size or UDim2.new(1, 0, 0, 38),
 		}, parent)
-		componentElements.Corner(row, 8)
+		componentElements.Corner(row, 10)
 		componentElements.Stroke(row)
 		componentElements.Gradient(row, COLORS.Interactive, Color3.fromRGB(39, 39, 42))
 		local label = componentElements.TextLabel(row, options.Name, 11, COLORS.Text, Enum.Font.GothamMedium)
@@ -312,7 +327,7 @@ local Elements = (function()
 			BorderSizePixel = 0,
 			Size = UDim2.new(1, 0, 0, 56),
 		}, parent)
-		componentElements.Corner(row, 8)
+		componentElements.Corner(row, 10)
 		componentElements.Stroke(row)
 		componentElements.Gradient(row, COLORS.Interactive, Color3.fromRGB(39, 39, 42))
 		local name = componentElements.TextLabel(row, options.Name, 11, COLORS.Text, Enum.Font.GothamMedium)
@@ -379,7 +394,7 @@ local Elements = (function()
 			value = math.clamp(snapped, minimum, maximum)
 			slider.Value = value
 			local alpha = (value - minimum) / (maximum - minimum)
-			componentElements.Tween(fill, 0.08, { Size = UDim2.new(alpha, 0, 1, 0) })
+			componentElements.Tween(fill, 0.14, { Size = UDim2.new(alpha, 0, 1, 0) }, Enum.EasingStyle.Sine)
 			thumb.Position = UDim2.new(1, 0, 0.5, 0)
 			valueBox.Text = formatValue(value)
 			if fireCallback ~= false then
@@ -914,7 +929,7 @@ function HavocLib.new(options: {[string]: any}?)
 		local actionStroke = actionButton:FindFirstChildOfClass("UIStroke")
 		if actionStroke then actionStroke.Transparency = 1 end
 		local actionCorner = actionButton:FindFirstChildOfClass("UICorner")
-		if actionCorner then actionCorner.CornerRadius = UDim.new(0, 5) end
+		if actionCorner then actionCorner.CornerRadius = UDim.new(0, 7) end
 		actionButton.MouseEnter:Connect(function()
 			tween(actionButton, Theme.HoverDuration, {
 				BackgroundColor3 = actionButton == closeButton
@@ -1132,7 +1147,7 @@ function HavocLib.new(options: {[string]: any}?)
 		window:_CreateConfigManager(self._configurationSaving)
 	end
 
-	tween(rootScale, Theme.Animation.Open.Time, { Scale = 1 }, Enum.EasingStyle.Back)
+	tween(rootScale, Theme.Animation.Open.Time, { Scale = 1 }, Enum.EasingStyle.Quint)
 	root.BackgroundTransparency = 1
 	tween(root, Theme.Animation.Fade.Time, { BackgroundTransparency = 0 })
 	return window
@@ -1169,16 +1184,16 @@ function Window:Tab(options: {[string]: any})
 	tabButton.BackgroundTransparency = 1
 	local tabScale = make("UIScale", { Scale = 1 }, tabButton)
 	tabButton.MouseButton1Down:Connect(function()
-		tween(tabScale, 0.08, { Scale = 0.97 })
+		tween(tabScale, Theme.Animation.Press.Time, { Scale = Theme.PressScale }, Enum.EasingStyle.Sine)
 	end)
 	local function releaseTabPress()
-		tween(tabScale, 0.16, { Scale = 1 }, Enum.EasingStyle.Back)
+		tween(tabScale, Theme.Animation.Release.Time, { Scale = 1 }, Enum.EasingStyle.Sine)
 	end
 	tabButton.MouseButton1Up:Connect(releaseTabPress)
 	tabButton.MouseButton1Click:Connect(releaseTabPress)
 	corner(tabButton)
 	local tabCorner = tabButton:FindFirstChildOfClass("UICorner")
-	if tabCorner then tabCorner.CornerRadius = UDim.new(0, 6) end
+	if tabCorner then tabCorner.CornerRadius = UDim.new(0, 9) end
 	local tabStroke = stroke(tabButton)
 	tabStroke.Transparency = 1
 	local icon = iconImage(tabButton, options.Icon or options.Name, 18)
@@ -1283,7 +1298,7 @@ function Window:SelectTab(tab: any)
 		item._page.Visible = active
 		item._page.Position = active and UDim2.new(0, 7, 0, 0) or UDim2.fromOffset(0, 0)
 		if active then
-			tween(item._page, 0.16, { Position = UDim2.fromOffset(0, 0) })
+			tween(item._page, 0.22, { Position = UDim2.fromOffset(0, 0) })
 		end
 		if item._emptyState then
 			item._emptyState.Visible = active and #item._cards == 0
@@ -1294,7 +1309,7 @@ function Window:SelectTab(tab: any)
 		})
 		local itemStroke = item._button:FindFirstChildOfClass("UIStroke")
 		if itemStroke then itemStroke.Transparency = active and 0.91 or 1 end
-		tween(item._indicator, 0.18, { Size = UDim2.new(0, 3, 0, active and 20 or 0) })
+		tween(item._indicator, 0.24, { Size = UDim2.new(0, 3, 0, active and 20 or 0) })
 		for _, child in ipairs(item._button:GetDescendants()) do
 			if child:IsA("TextLabel") and child ~= item.Badge then
 				tween(child, Theme.HoverDuration, { TextColor3 = active and COLORS.Text or COLORS.Muted })
@@ -1566,19 +1581,28 @@ function Section:Dropdown(options: {[string]: any})
 	local dropdown = { Value = selected, Frame = holder }
 	local function setExpanded(state: boolean)
 		expanded = state
-		menu.Visible = expanded
 		if expanded then
+			menu.Visible = true
+			menu.AutomaticSize = Enum.AutomaticSize.None
+			menu.Size = UDim2.new(1, 0, 0, 0)
 			holder.AutomaticSize = Enum.AutomaticSize.None
 			local visibleChoices = math.min(#choices, options.MaxVisible or 5)
 			local menuHeight = visibleChoices * 32 + 28
-			tween(holder, Theme.HoverDuration, {
+			tween(holder, Theme.Animation.Fade.Time, {
 				Size = UDim2.new(1, 0, 0, 48 + menuHeight),
 			})
-			menu.Size = UDim2.new(1, 0, 0, menuHeight)
+			tween(menu, Theme.Animation.Fade.Time, {
+				Size = UDim2.new(1, 0, 0, menuHeight),
+			})
 		else
-			holder.AutomaticSize = Enum.AutomaticSize.Y
-			tween(holder, Theme.HoverDuration, { Size = UDim2.new(1, 0, 0, 36) })
-			menu.Size = UDim2.new(1, 0, 0, 0)
+			tween(holder, Theme.Animation.Fade.Time, { Size = UDim2.new(1, 0, 0, 36) })
+			local closeAnimation = tween(menu, Theme.Animation.Fade.Time, { Size = UDim2.new(1, 0, 0, 0) })
+			closeAnimation.Completed:Once(function()
+				if not expanded then
+					menu.Visible = false
+					holder.AutomaticSize = Enum.AutomaticSize.Y
+				end
+			end)
 		end
 	end
 	local function setValue(nextValue: any, fireCallback: boolean?)
@@ -1722,6 +1746,7 @@ function Section:ColorPicker(options: {[string]: any})
 	local holder = make("Frame", {
 		AutomaticSize = Enum.AutomaticSize.Y,
 		BackgroundTransparency = 1,
+		ClipsDescendants = true,
 		Size = UDim2.new(1, 0, 0, 36),
 	}, self._frame)
 	local head = button(holder, options.Name, UDim2.new(1, 0, 0, 36))
@@ -1876,13 +1901,21 @@ function Section:ColorPicker(options: {[string]: any})
 	table.insert(self._window._connections, inputEnded)
 	head.MouseButton1Click:Connect(function()
 		expanded = not expanded
-		picker.Visible = expanded
 		if expanded then
+			picker.Visible = true
+			picker.Size = UDim2.new(1, 0, 0, 0)
 			holder.AutomaticSize = Enum.AutomaticSize.None
-			tween(holder, Theme.HoverDuration, { Size = UDim2.new(1, 0, 0, 168) })
+			tween(holder, Theme.Animation.Fade.Time, { Size = UDim2.new(1, 0, 0, 168) })
+			tween(picker, Theme.Animation.Fade.Time, { Size = UDim2.new(1, 0, 0, 124) })
 		else
-			holder.AutomaticSize = Enum.AutomaticSize.Y
-			tween(holder, Theme.HoverDuration, { Size = UDim2.new(1, 0, 0, 36) })
+			tween(holder, Theme.Animation.Fade.Time, { Size = UDim2.new(1, 0, 0, 36) })
+			local closeAnimation = tween(picker, Theme.Animation.Fade.Time, { Size = UDim2.new(1, 0, 0, 0) })
+			closeAnimation.Completed:Once(function()
+				if not expanded then
+					picker.Visible = false
+					holder.AutomaticSize = Enum.AutomaticSize.Y
+				end
+			end)
 		end
 	end)
 	setColor(color, false)
@@ -1904,7 +1937,7 @@ function Window:SetVisible(visible: boolean)
 		tween(self.Backdrop, Theme.Animation.Fade.Time, { BackgroundTransparency = 0.42 })
 		self._scale.Scale = Theme.OpenScale
 		self.Root.BackgroundTransparency = 1
-		tween(self._scale, Theme.Animation.Open.Time, { Scale = 1 }, Enum.EasingStyle.Back)
+		tween(self._scale, Theme.Animation.Open.Time, { Scale = 1 }, Enum.EasingStyle.Quint)
 		tween(self.Root, Theme.Animation.Fade.Time, { BackgroundTransparency = 0 })
 	else
 		self._visible = false
