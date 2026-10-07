@@ -11,7 +11,7 @@ local Theme = {}
 
 Theme.Colors = {
 	Background = Color3.fromRGB(17, 17, 18),
-	Container = Color3.fromRGB(36, 36, 38),
+	Container = Color3.fromRGB(39, 39, 41),
 	Interactive = Color3.fromRGB(40, 40, 42),
 	Accent = Color3.fromRGB(231, 231, 233),
 	Primary = Color3.fromRGB(0, 145, 255),
@@ -19,7 +19,7 @@ Theme.Colors = {
 	Border = Color3.fromRGB(72, 72, 76),
 	Text = Color3.fromRGB(243, 243, 245),
 	Muted = Color3.fromRGB(192, 192, 196),
-	Icon = Color3.fromRGB(160, 160, 164),
+	Icon = Color3.fromRGB(164, 164, 168),
 	Success = Color3.fromRGB(220, 220, 226),
 }
 
@@ -241,8 +241,8 @@ local Elements = (function()
 			LayoutOrder = options.LayoutOrder or 0,
 			Size = UDim2.new(1, 0, 0, 0),
 			Text = options.Content or "",
-			TextColor3 = options.Color or Color3.fromRGB(194, 194, 198),
-			TextSize = options.TextSize or 11,
+			TextColor3 = options.Color or Color3.fromRGB(202, 202, 206),
+			TextSize = options.TextSize or 12,
 			TextWrapped = true,
 			TextXAlignment = Enum.TextXAlignment.Left,
 			TextYAlignment = Enum.TextYAlignment.Top,
@@ -587,9 +587,9 @@ local Elements = (function()
 				part(size * 0.18, 2, 0.19, 0.19, 45)
 				part(size * 0.18, 2, 0.81, 0.19, -45)
 			elseif normalizedIcon == "movement" then
-				part(size * 0.62, 1.5, 0.42, 0.58, -45)
-				part(size * 0.3, 1.5, 0.68, 0.29, 45)
-				part(size * 0.3, 1.5, 0.79, 0.4, -45)
+				part(size * 0.62, 2, 0.42, 0.58, -45)
+				part(size * 0.3, 2, 0.68, 0.29, 45)
+				part(size * 0.3, 2, 0.79, 0.4, -45)
 			elseif normalizedIcon == "esp" then
 				local diamond = part(size * 0.52, size * 0.52, 0.5, 0.5, 45)
 				diamond.BackgroundTransparency = 1
@@ -841,10 +841,12 @@ function HavocLib.new(options: {[string]: any}?)
 
 	local header = make("Frame", {
 		BackgroundColor3 = Color3.fromRGB(22, 22, 23),
+		ClipsDescendants = true,
 		Position = UDim2.fromScale(0, 0),
 		Size = UDim2.new(1, 0, 0, 39),
 	}, root)
 	window.Header = header
+	corner(header, 14)
 	padding(header, 9, 0)
 	Elements.Gradient(header, Color3.fromRGB(22, 22, 23), Color3.fromRGB(17, 17, 18))
 	make("Frame", {
@@ -900,14 +902,15 @@ function HavocLib.new(options: {[string]: any}?)
 	subtitle.Size = UDim2.new(0.25, 0, 0, 12)
 	local version = textLabel(header, config.Version or "v0.1.0", 9, COLORS.Muted, Enum.Font.GothamMedium)
 	version.AnchorPoint = Vector2.new(0, 0.5)
-	version.Position = UDim2.new(0, 119, 0.5, 0)
-	version.Size = UDim2.fromOffset(56, 20)
+	version.Position = UDim2.new(0, 99, 0.5, 0)
+	version.Size = UDim2.fromOffset(58, 21)
 	version.BackgroundColor3 = COLORS.Interactive
-	version.TextColor3 = Color3.fromRGB(221, 221, 224)
+	version.TextColor3 = Color3.fromRGB(232, 232, 235)
 	corner(version)
-	stroke(version)
+	stroke(version, 0.78)
 	Elements.Gradient(version, Color3.fromRGB(45, 45, 48), Color3.fromRGB(37, 37, 39), 90)
 	version.TextXAlignment = Enum.TextXAlignment.Center
+	version.Font = Enum.Font.GothamMedium
 
 	local search = make("TextBox", {
 		AnchorPoint = Vector2.new(1, 0.5),
@@ -934,30 +937,38 @@ function HavocLib.new(options: {[string]: any}?)
 		AnchorPoint = Vector2.new(1, 0.5),
 		BackgroundTransparency = 1,
 		Position = UDim2.new(1, 0, 0.5, 0),
-		Size = UDim2.fromOffset(69, 22),
+		Size = UDim2.fromOffset(82, 26),
 	}, header)
 	local actionsLayout = make("UIListLayout", {
 		FillDirection = Enum.FillDirection.Horizontal,
 		HorizontalAlignment = Enum.HorizontalAlignment.Right,
-		Padding = UDim.new(0, 3),
+		Padding = UDim.new(0, 4),
 		SortOrder = Enum.SortOrder.LayoutOrder,
 	}, windowActions)
-	local minimizeButton = button(windowActions, "−", UDim2.fromOffset(21, 22), COLORS.Interactive)
-	minimizeButton.TextSize = 14
+	local minimizeButton = button(windowActions, "−", UDim2.fromOffset(24, 26), COLORS.Interactive)
+	minimizeButton.TextSize = 16
 	minimizeButton.LayoutOrder = 1
-	local maximizeButton = button(windowActions, "□", UDim2.fromOffset(21, 22), COLORS.Interactive)
-	maximizeButton.TextSize = 11
+	local maximizeButton = button(windowActions, "□", UDim2.fromOffset(24, 26), COLORS.Interactive)
+	maximizeButton.Text = ""
 	maximizeButton.LayoutOrder = 2
-	local closeButton = button(windowActions, "×", UDim2.fromOffset(21, 22), COLORS.Interactive)
-	closeButton.TextSize = 14
+	local maximizeGlyph = make("Frame", {
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		BackgroundTransparency = 1,
+		Position = UDim2.fromScale(0.5, 0.5),
+		Size = UDim2.fromOffset(9, 9),
+	}, maximizeButton)
+	corner(maximizeGlyph, 2)
+	stroke(maximizeGlyph, 0.22)
+	local closeButton = button(windowActions, "×", UDim2.fromOffset(24, 26), COLORS.Interactive)
+	closeButton.TextSize = 16
 	closeButton.LayoutOrder = 3
 	for _, actionButton in ipairs({ minimizeButton, maximizeButton, closeButton }) do
 		actionButton.BackgroundTransparency = 1
-		actionButton.TextColor3 = Color3.fromRGB(218, 218, 221)
+		actionButton.TextColor3 = Color3.fromRGB(228, 228, 231)
 		local actionStroke = actionButton:FindFirstChildOfClass("UIStroke")
 		if actionStroke then actionStroke.Transparency = 1 end
 		local actionCorner = actionButton:FindFirstChildOfClass("UICorner")
-		if actionCorner then actionCorner.CornerRadius = UDim.new(0, 7) end
+		if actionCorner then actionCorner.CornerRadius = UDim.new(0, 9) end
 		actionButton.MouseEnter:Connect(function()
 			tween(actionButton, Theme.HoverDuration, {
 				BackgroundColor3 = actionButton == closeButton
@@ -1059,7 +1070,7 @@ function HavocLib.new(options: {[string]: any}?)
 		if window._maximized then
 			window._maximized = false
 			tween(root, Theme.HoverDuration, { Size = window._expandedSize, Position = window._expandedPosition })
-			maximizeButton.Text = "□"
+			maximizeGlyph.Size = UDim2.fromOffset(9, 9)
 		else
 			window._expandedSize = root.Size
 			window._expandedPosition = root.Position
@@ -1068,7 +1079,7 @@ function HavocLib.new(options: {[string]: any}?)
 				Size = UDim2.new(0.9, 0, 0.88, 0),
 				Position = UDim2.fromScale(0.5, 0.5),
 			})
-			maximizeButton.Text = "▢"
+			maximizeGlyph.Size = UDim2.fromOffset(8, 8)
 		end
 	end)
 
@@ -1197,7 +1208,7 @@ function Window:Tab(options: {[string]: any})
 			BackgroundTransparency = 1,
 			Size = UDim2.new(1, 0, 0, 25),
 		}, self._tabList) :: Frame
-		local captionLabel = textLabel(caption, options.CaptionBefore, 10, Color3.fromRGB(164, 164, 169))
+		local captionLabel = textLabel(caption, options.CaptionBefore, 11, Color3.fromRGB(180, 180, 184))
 		captionLabel.Position = UDim2.new(0, 8, 0, 8)
 		captionLabel.Size = UDim2.new(1, -16, 0, 13)
 		tab._caption = caption
@@ -1280,7 +1291,7 @@ function Window:Tab(options: {[string]: any})
 			Visible = false,
 			ZIndex = page.ZIndex + 1,
 		}, self.Content) :: Frame
-		local emptyLabel = textLabel(emptyState, options.EmptyText, 11, Color3.fromRGB(151, 151, 156))
+		local emptyLabel = textLabel(emptyState, options.EmptyText, 11, Color3.fromRGB(171, 171, 176))
 		emptyLabel.ZIndex = emptyState.ZIndex + 1
 		emptyLabel.AnchorPoint = Vector2.new(0.5, 0.5)
 		emptyLabel.Position = UDim2.fromScale(0.5, 0.5)
@@ -1375,16 +1386,16 @@ function Tab:Section(options: {[string]: any})
 		Size = UDim2.new(1, 0, 0, 0),
 	}, self._page) :: Frame
 	corner(frame)
-	local sectionStroke = stroke(frame, 0.895)
+	local sectionStroke = stroke(frame, 0.83)
 	padding(frame, 13)
 	local sectionColor = sectionOptions.BackgroundColor or COLORS.Container
 	local sectionGradient = sectionOptions.GradientColor or Color3.fromRGB(28, 28, 30)
 	Elements.Gradient(frame, sectionColor, sectionGradient)
 	frame.MouseEnter:Connect(function()
-		tween(sectionStroke, Theme.HoverDuration, { Transparency = 0.86 })
+		tween(sectionStroke, Theme.HoverDuration, { Transparency = 0.76 })
 	end)
 	frame.MouseLeave:Connect(function()
-		tween(sectionStroke, Theme.HoverDuration, { Transparency = 0.895 })
+		tween(sectionStroke, Theme.HoverDuration, { Transparency = 0.83 })
 	end)
 	local layout = make("UIListLayout", {
 		Padding = UDim.new(0, 9),
@@ -1395,7 +1406,7 @@ function Tab:Section(options: {[string]: any})
 		Size = UDim2.new(1, 0, 0, 22),
 		LayoutOrder = -1,
 	}, frame)
-	local icon = iconImage(headingRow, sectionOptions.Icon or sectionOptions.Name or "layers", 18)
+	local icon = iconImage(headingRow, sectionOptions.Icon or sectionOptions.Name or "layers", 16)
 	icon.AnchorPoint = Vector2.new(0.5, 0.5)
 	icon.Position = UDim2.new(0, 8, 0.5, 0)
 	icon.Size = UDim2.fromOffset(16, 16)
@@ -1417,29 +1428,34 @@ function Tab:Section(options: {[string]: any})
 		end
 	end
 	local headingText = string.lower(sectionOptions.Name or "Section")
-	local heading = textLabel(headingRow, headingText, 12, COLORS.Text, Enum.Font.GothamBold)
-	heading.Position = UDim2.fromOffset(24, 0)
-	heading.Size = UDim2.new(1, -24, 1, 0)
-	local divider = make("Frame", {
-		AnchorPoint = Vector2.new(0, 0.5),
-		BackgroundColor3 = Color3.fromRGB(66, 66, 69),
-		BackgroundTransparency = 0,
-		BorderSizePixel = 0,
-		Position = UDim2.new(0, 0, 0.5, 0),
-		Size = UDim2.new(0, 0, 0, 1),
-		ZIndex = headingRow.ZIndex,
-	}, headingRow)
-	Elements.Gradient(divider, Color3.fromRGB(66, 66, 69), Color3.fromRGB(36, 36, 38), 0)
 	local headingWidth = TextService:GetTextSize(
 		headingText,
 		12,
 		Enum.Font.GothamBold,
 		Vector2.new(1000, 22)
 	).X
+	local heading = textLabel(headingRow, headingText, 12, COLORS.Text, Enum.Font.GothamBold)
+	heading.Position = UDim2.fromOffset(24, 0)
+	heading.Size = UDim2.new(0, headingWidth + 4, 1, 0)
+	local divider = make("Frame", {
+		AnchorPoint = Vector2.new(0, 0.5),
+		BackgroundColor3 = Color3.fromRGB(82, 82, 86),
+		BackgroundTransparency = 0,
+		BorderSizePixel = 0,
+		Position = UDim2.new(0, 31 + headingWidth, 0.5, 0),
+		Size = UDim2.new(1, -(31 + headingWidth), 0, 2),
+		ZIndex = headingRow.ZIndex + 1,
+	}, headingRow)
+	corner(divider, 1)
+	local dividerGradient = Elements.Gradient(divider, Color3.fromRGB(82, 82, 86), Color3.fromRGB(50, 50, 53), 0) :: UIGradient
+	dividerGradient.Transparency = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 0),
+		NumberSequenceKeypoint.new(1, 0.72),
+	})
 	local function updateDivider()
-		local dividerStart = math.min(26 + headingWidth, headingRow.AbsoluteSize.X)
+		local dividerStart = 31 + headingWidth
 		divider.Position = UDim2.new(0, dividerStart, 0.5, 0)
-		divider.Size = UDim2.new(0, math.max(0, headingRow.AbsoluteSize.X - dividerStart), 0, 1)
+		divider.Size = UDim2.new(1, -dividerStart, 0, 2)
 	end
 	headingRow:GetPropertyChangedSignal("AbsoluteSize"):Connect(updateDivider)
 	updateDivider()
