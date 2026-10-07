@@ -10,15 +10,16 @@ local Workspace = game:GetService("Workspace")
 local Theme = {}
 
 Theme.Colors = {
-	Background = Color3.fromRGB(16, 16, 17),
-	Container = Color3.fromRGB(41, 41, 43),
-	Interactive = Color3.fromRGB(45, 45, 48),
-	Accent = Color3.fromRGB(222, 222, 225),
+	Background = Color3.fromRGB(17, 17, 18),
+	Container = Color3.fromRGB(36, 36, 38),
+	Interactive = Color3.fromRGB(40, 40, 42),
+	Accent = Color3.fromRGB(231, 231, 233),
 	Primary = Color3.fromRGB(0, 145, 255),
 	ToggleOn = Color3.fromRGB(51, 199, 89),
 	Border = Color3.fromRGB(72, 72, 76),
 	Text = Color3.fromRGB(243, 243, 245),
-	Muted = Color3.fromRGB(181, 181, 185),
+	Muted = Color3.fromRGB(192, 192, 196),
+	Icon = Color3.fromRGB(160, 160, 164),
 	Success = Color3.fromRGB(220, 220, 226),
 }
 
@@ -26,21 +27,21 @@ Theme.CornerRadius = UDim.new(0, 12)
 Theme.Stroke = {
 	Color = Color3.fromRGB(255, 255, 255),
 	Thickness = 1,
-	Transparency = 0.86,
+	Transparency = 0.89,
 	ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
 	LineJoinMode = Enum.LineJoinMode.Round,
 }
-Theme.PanelTransparency = 0
-Theme.HoverDuration = 0.18
+Theme.PanelTransparency = 0.04
+Theme.HoverDuration = 0.22
 Theme.PressScale = 0.975
 Theme.OpenScale = 0.97
 Theme.Padding = 16
 Theme.Animation = {
-	Hover = TweenInfo.new(Theme.HoverDuration, Enum.EasingStyle.Sine, Enum.EasingDirection.Out),
-	Press = TweenInfo.new(0.1, Enum.EasingStyle.Sine, Enum.EasingDirection.Out),
-	Release = TweenInfo.new(0.2, Enum.EasingStyle.Sine, Enum.EasingDirection.Out),
+	Hover = TweenInfo.new(Theme.HoverDuration, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
+	Press = TweenInfo.new(0.12, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
+	Release = TweenInfo.new(0.24, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
 	Open = TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
-	Fade = TweenInfo.new(0.24, Enum.EasingStyle.Sine, Enum.EasingDirection.Out),
+	Fade = TweenInfo.new(0.26, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
 }
 
 local Elements = (function()
@@ -51,6 +52,9 @@ local Elements = (function()
 
 	function componentElements.Make(className: string, properties: {[string]: any}, parent: Instance?): Instance
 		local object = Instance.new(className)
+		if object:IsA("GuiObject") then
+			object.BorderSizePixel = 0
+		end
 		for key, value in pairs(properties) do
 			(object :: any)[key] = value
 		end
@@ -110,7 +114,7 @@ local Elements = (function()
 	function componentElements.Tween(object: Instance, duration: number, properties: {[string]: any}, style: Enum.EasingStyle?)
 		local animation = TweenService:Create(
 			object,
-			TweenInfo.new(duration, style or Enum.EasingStyle.Sine, Enum.EasingDirection.Out),
+			TweenInfo.new(duration, style or Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
 			properties
 		)
 		animation:Play()
@@ -129,7 +133,7 @@ local Elements = (function()
 			if buttonStroke then
 				componentElements.Tween(buttonStroke, Theme.HoverDuration, {
 					Color = baseStrokeColor:Lerp(Color3.new(1, 1, 1), 0.18),
-					Transparency = 0.72,
+					Transparency = 0.84,
 				})
 			end
 		end)
@@ -143,10 +147,10 @@ local Elements = (function()
 			end
 		end)
 		button.MouseButton1Down:Connect(function()
-			componentElements.Tween(scale, Theme.Animation.Press.Time, { Scale = Theme.PressScale }, Enum.EasingStyle.Sine)
+			componentElements.Tween(scale, Theme.Animation.Press.Time, { Scale = Theme.PressScale }, Enum.EasingStyle.Quint)
 		end)
 		local function release()
-			componentElements.Tween(scale, Theme.Animation.Release.Time, { Scale = 1 }, Enum.EasingStyle.Sine)
+			componentElements.Tween(scale, Theme.Animation.Release.Time, { Scale = 1 }, Enum.EasingStyle.Quint)
 		end
 		button.MouseButton1Up:Connect(release)
 		button.MouseButton1Click:Connect(release)
@@ -212,12 +216,14 @@ local Elements = (function()
 		local luminance = backgroundColor.R * 0.2126 + backgroundColor.G * 0.7152 + backgroundColor.B * 0.0722
 		local textColor = options.TextColor or COLORS.Text
 		if not options.TextColor and luminance > 0.55 then
-			textColor = COLORS.Background
+			textColor = Color3.fromRGB(27, 27, 29)
 		end
 		local size = options.Size or UDim2.new(1, 0, 0, options.Height or 34)
 		local element = componentElements.Button(parent, options.Name, size, backgroundColor)
 		element.BackgroundColor3 = backgroundColor
 		element.TextColor3 = textColor
+		element.Font = Enum.Font.GothamBold
+		element.TextSize = 10
 		local gradientShade = if luminance > 0.55 then 0.08 else 0.23
 		componentElements.Gradient(element, backgroundColor, backgroundColor:Lerp(Color3.new(0, 0, 0), gradientShade))
 		element.TextXAlignment = Enum.TextXAlignment.Center
@@ -249,34 +255,42 @@ local Elements = (function()
 		local row = componentElements.Make("Frame", {
 			BackgroundColor3 = COLORS.Interactive,
 			BorderSizePixel = 0,
-			Size = options.Size or UDim2.new(1, 0, 0, 38),
+			Size = options.Size or UDim2.new(1, 0, 0, 34),
 		}, parent)
 		componentElements.Corner(row, 10)
-		componentElements.Stroke(row)
-		componentElements.Gradient(row, COLORS.Interactive, Color3.fromRGB(39, 39, 42))
-		local label = componentElements.TextLabel(row, options.Name, 11, COLORS.Text, Enum.Font.GothamMedium)
+		local rowStroke = componentElements.Stroke(row, 0.93)
+		componentElements.Gradient(row, COLORS.Interactive, Color3.fromRGB(34, 34, 36))
+		local label = componentElements.TextLabel(row, options.Name, 11, Color3.fromRGB(213, 213, 216), Enum.Font.GothamMedium)
 		label.Position = UDim2.fromOffset(11, 0)
 		label.Size = UDim2.new(1, -60, 1, 0)
 		local track = componentElements.Make("Frame", {
 			AnchorPoint = Vector2.new(1, 0.5),
-			BackgroundColor3 = value and COLORS.ToggleOn or Color3.fromRGB(82, 82, 87),
+			BackgroundColor3 = value and COLORS.ToggleOn or Color3.fromRGB(69, 69, 73),
 			BorderSizePixel = 0,
 			Position = UDim2.new(1, -11, 0.5, 0),
 			Size = UDim2.fromOffset(34, 20),
 		}, row)
 		componentElements.Corner(track, 20)
-		componentElements.Stroke(track, 0.88)
-		local trackColor = value and COLORS.ToggleOn or Color3.fromRGB(82, 82, 87)
-		local trackGradient = componentElements.Gradient(track, trackColor, trackColor:Lerp(Color3.new(0, 0, 0), 0.18)) :: UIGradient
+		local trackStroke = componentElements.Stroke(track, 0)
+		trackStroke.Color = Color3.fromRGB(74, 74, 77)
+		componentElements.Gradient(track, Color3.fromRGB(69, 69, 73), Color3.fromRGB(60, 60, 63))
+		local onTrack = componentElements.Make("Frame", {
+			BackgroundColor3 = COLORS.ToggleOn,
+			BackgroundTransparency = value and 0 or 1,
+			BorderSizePixel = 0,
+			Size = UDim2.fromScale(1, 1),
+		}, track)
+		componentElements.Corner(onTrack, 20)
+		componentElements.Gradient(onTrack, COLORS.ToggleOn, Color3.fromRGB(47, 183, 82))
 		local knob = componentElements.Make("Frame", {
 			AnchorPoint = Vector2.new(0, 0.5),
-			BackgroundColor3 = Color3.fromRGB(248, 248, 249),
+			BackgroundColor3 = Color3.fromRGB(238, 238, 240),
 			BorderSizePixel = 0,
-			Position = value and UDim2.new(1, -16, 0.5, 0) or UDim2.new(0, 4, 0.5, 0),
-			Size = UDim2.fromOffset(12, 12),
+			Position = value and UDim2.new(1, -17, 0.5, 0) or UDim2.new(0, 3, 0.5, 0),
+			Size = UDim2.fromOffset(10, 10),
 		}, track)
-		componentElements.Corner(knob, 6)
-		componentElements.Stroke(knob)
+		componentElements.Corner(knob, 5)
+		componentElements.Stroke(knob, 0.94)
 		local hitbox = componentElements.Make("TextButton", {
 			BackgroundTransparency = 1,
 			Size = UDim2.fromScale(1, 1),
@@ -288,14 +302,14 @@ local Elements = (function()
 		local function setValue(nextValue: boolean, fireCallback: boolean?)
 			value = nextValue == true
 			toggle.Value = value
-			trackColor = value and COLORS.ToggleOn or Color3.fromRGB(82, 82, 87)
-			componentElements.Tween(track, Theme.HoverDuration, { BackgroundColor3 = trackColor })
-			trackGradient.Color = ColorSequence.new(
-				Color3.new(1, 1, 1),
-				componentElements.GradientTint(trackColor, trackColor:Lerp(Color3.new(0, 0, 0), 0.18))
-			)
+			componentElements.Tween(onTrack, Theme.HoverDuration, {
+				BackgroundTransparency = value and 0 or 1,
+			})
+			componentElements.Tween(trackStroke, Theme.HoverDuration, {
+				Color = value and Color3.fromRGB(69, 211, 106) or Color3.fromRGB(74, 74, 77),
+			})
 			componentElements.Tween(knob, Theme.HoverDuration, {
-				Position = value and UDim2.new(1, -16, 0.5, 0) or UDim2.new(0, 4, 0.5, 0),
+				Position = value and UDim2.new(1, -17, 0.5, 0) or UDim2.new(0, 3, 0.5, 0),
 			})
 			if fireCallback ~= false then
 				componentElements.SafeCallback(owner, options.Callback, value)
@@ -305,10 +319,12 @@ local Elements = (function()
 			setValue(nextValue, fireCallback)
 		end
 		hitbox.MouseEnter:Connect(function()
-			componentElements.Tween(row, Theme.HoverDuration, { BackgroundColor3 = Color3.fromRGB(54, 54, 58) })
+			componentElements.Tween(row, Theme.HoverDuration, { BackgroundColor3 = Color3.fromRGB(43, 43, 45) })
+			componentElements.Tween(rowStroke, Theme.HoverDuration, { Transparency = 0.89 })
 		end)
 		hitbox.MouseLeave:Connect(function()
 			componentElements.Tween(row, Theme.HoverDuration, { BackgroundColor3 = COLORS.Interactive })
+			componentElements.Tween(rowStroke, Theme.HoverDuration, { Transparency = Theme.Stroke.Transparency })
 		end)
 		hitbox.MouseButton1Click:Connect(function()
 			setValue(not value)
@@ -394,7 +410,7 @@ local Elements = (function()
 			value = math.clamp(snapped, minimum, maximum)
 			slider.Value = value
 			local alpha = (value - minimum) / (maximum - minimum)
-			componentElements.Tween(fill, 0.14, { Size = UDim2.new(alpha, 0, 1, 0) }, Enum.EasingStyle.Sine)
+			componentElements.Tween(fill, 0.18, { Size = UDim2.new(alpha, 0, 1, 0) }, Enum.EasingStyle.Quint)
 			thumb.Position = UDim2.new(1, 0, 0.5, 0)
 			valueBox.Text = formatValue(value)
 			if fireCallback ~= false then
@@ -471,15 +487,17 @@ local Elements = (function()
 				Size = UDim2.fromOffset(iconSize, iconSize),
 			}, homeIcon)
 			local function line(x: number, y: number, width: number, height: number, rotation: number)
-				return componentElements.Make("Frame", {
+				local segment = componentElements.Make("Frame", {
 					AnchorPoint = Vector2.new(0.5, 0.5),
-					BackgroundColor3 = COLORS.Muted,
+					BackgroundColor3 = COLORS.Icon,
 					BorderSizePixel = 0,
 					Name = "HavocIconPart",
 					Position = UDim2.fromOffset(x, y),
 					Rotation = rotation,
 					Size = UDim2.fromOffset(width, height),
 				}, drawing)
+				componentElements.Corner(segment, math.min(width, height) / 2)
+				return segment
 			end
 			line(iconSize * 0.34, iconSize * 0.35, iconSize * 0.43, 1.3, -38)
 			line(iconSize * 0.66, iconSize * 0.35, iconSize * 0.43, 1.3, 38)
@@ -507,13 +525,14 @@ local Elements = (function()
 				Transparency = 0,
 			}, ring)
 			local function tick(x: number, y: number, width: number, height: number)
-				componentElements.Make("Frame", {
-					BackgroundColor3 = COLORS.Muted,
+				local segment = componentElements.Make("Frame", {
+					BackgroundColor3 = COLORS.Icon,
 					BorderSizePixel = 0,
 					Name = "HavocIconPart",
 					Position = UDim2.fromOffset(x, y),
 					Size = UDim2.fromOffset(width, height),
 				}, crosshair)
+				componentElements.Corner(segment, math.min(width, height) / 2)
 			end
 			tick(size * 0.5 - 0.6, size * 0.08, 1.2, size * 0.18)
 			tick(size * 0.5 - 0.6, size * 0.74, 1.2, size * 0.18)
@@ -529,15 +548,17 @@ local Elements = (function()
 				Size = UDim2.fromOffset(size, size),
 			}, parent)
 			local function part(width: number, height: number, x: number, y: number, rotation: number?)
-				return componentElements.Make("Frame", {
+				local segment = componentElements.Make("Frame", {
 					AnchorPoint = Vector2.new(0.5, 0.5),
-					BackgroundColor3 = COLORS.Muted,
+					BackgroundColor3 = COLORS.Icon,
 					BorderSizePixel = 0,
 					Name = "HavocIconPart",
 					Position = UDim2.fromScale(x, y),
 					Rotation = rotation or 0,
 					Size = UDim2.fromOffset(width, height),
 				}, iconRoot)
+				componentElements.Corner(segment, math.min(width, height) / 2)
+				return segment
 			end
 			if normalizedIcon == "settings" then
 				local ring = componentElements.Make("Frame", {
@@ -601,7 +622,7 @@ local Elements = (function()
 				Color = COLORS.Muted,
 				Thickness = 1.2,
 			}, ring)
-			componentElements.Make("Frame", {
+			local dot = componentElements.Make("Frame", {
 				AnchorPoint = Vector2.new(0.5, 0.5),
 				BackgroundColor3 = COLORS.Muted,
 				BorderSizePixel = 0,
@@ -609,7 +630,8 @@ local Elements = (function()
 				Position = UDim2.fromScale(0.5, 0.3),
 				Size = UDim2.fromOffset(1.5, 1.5),
 			}, infoIcon)
-			componentElements.Make("Frame", {
+			componentElements.Corner(dot, 1)
+			local stem = componentElements.Make("Frame", {
 				AnchorPoint = Vector2.new(0.5, 0.5),
 				BackgroundColor3 = COLORS.Muted,
 				BorderSizePixel = 0,
@@ -617,6 +639,7 @@ local Elements = (function()
 				Position = UDim2.fromScale(0.5, 0.6),
 				Size = UDim2.fromOffset(1.5, size * 0.28),
 			}, infoIcon)
+			componentElements.Corner(stem, 1)
 			return infoIcon
 		end
 		local namedIcons = {
@@ -780,7 +803,7 @@ function HavocLib.new(options: {[string]: any}?)
 		local camera = Workspace.CurrentCamera
 		if not camera then return end
 		local viewport = camera.ViewportSize
-		responsiveScale.Scale = math.max(0.1, math.min(1, (viewport.X - 36) / 460, (viewport.Y - 36) / 356))
+		responsiveScale.Scale = math.max(0.1, math.min(1, (viewport.X - 20) / 460, (viewport.Y - 20) / 356))
 	end
 	updateResponsiveScale()
 	local viewportConnection: RBXScriptConnection? = nil
@@ -805,8 +828,12 @@ function HavocLib.new(options: {[string]: any}?)
 	end)
 	table.insert(window._connections, cameraConnection)
 	connectViewport()
-	corner(root)
-	stroke(root, 0.72)
+	root.ClipsDescendants = true
+	corner(root, 14)
+	local rootStroke = stroke(root, 0)
+	rootStroke.Color = Color3.fromRGB(48, 48, 51)
+	rootStroke.Transparency = 1
+	window._stroke = rootStroke
 	Elements.Gradient(root, COLORS.Background, Color3.fromRGB(12, 12, 13), 145)
 	local rootScale = make("UIScale", { Scale = Theme.OpenScale }, root) :: UIScale
 	window._scale = rootScale
@@ -822,11 +849,11 @@ function HavocLib.new(options: {[string]: any}?)
 	Elements.Gradient(header, Color3.fromRGB(22, 22, 23), Color3.fromRGB(17, 17, 18))
 	make("Frame", {
 		AnchorPoint = Vector2.new(0, 1),
-		BackgroundColor3 = Color3.fromRGB(42, 42, 44),
-		BackgroundTransparency = 0.22,
+		BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+		BackgroundTransparency = 0.93,
 		BorderSizePixel = 0,
 		Position = UDim2.new(0, 0, 1, 0),
-		Size = UDim2.new(1, 0, 0, 2),
+		Size = UDim2.new(1, 0, 0, 1),
 	}, header)
 	if config.Logo ~= nil then
 		local logoAsset: string?
@@ -873,12 +900,13 @@ function HavocLib.new(options: {[string]: any}?)
 	subtitle.Size = UDim2.new(0.25, 0, 0, 12)
 	local version = textLabel(header, config.Version or "v0.1.0", 9, COLORS.Muted, Enum.Font.GothamMedium)
 	version.AnchorPoint = Vector2.new(0, 0.5)
-	version.Position = UDim2.new(0, 106, 0.5, 0)
-	version.Size = UDim2.fromOffset(46, 20)
+	version.Position = UDim2.new(0, 119, 0.5, 0)
+	version.Size = UDim2.fromOffset(56, 20)
 	version.BackgroundColor3 = COLORS.Interactive
 	version.TextColor3 = Color3.fromRGB(221, 221, 224)
 	corner(version)
 	stroke(version)
+	Elements.Gradient(version, Color3.fromRGB(45, 45, 48), Color3.fromRGB(37, 37, 39), 90)
 	version.TextXAlignment = Enum.TextXAlignment.Center
 
 	local search = make("TextBox", {
@@ -934,12 +962,12 @@ function HavocLib.new(options: {[string]: any}?)
 			tween(actionButton, Theme.HoverDuration, {
 				BackgroundColor3 = actionButton == closeButton
 					and Color3.fromRGB(104, 43, 47)
-					or Color3.fromRGB(54, 54, 57),
+						or Color3.fromRGB(48, 48, 51),
 				BackgroundTransparency = 0,
 				TextColor3 = COLORS.Text,
 			})
 			if actionStroke then
-				tween(actionStroke, Theme.HoverDuration, { Transparency = 0.86 })
+				tween(actionStroke, Theme.HoverDuration, { Transparency = 0.93 })
 			end
 		end)
 		actionButton.MouseLeave:Connect(function()
@@ -961,12 +989,13 @@ function HavocLib.new(options: {[string]: any}?)
 	}, root)
 	window.Body = body
 	local sidebar = make("Frame", {
-		BackgroundColor3 = Color3.fromRGB(19, 19, 21),
+		BackgroundColor3 = Color3.fromRGB(18, 18, 19),
 		BackgroundTransparency = 0,
 		BorderSizePixel = 0,
 		Position = UDim2.fromScale(0, 0),
 		Size = UDim2.new(0, 164, 1, 0),
 	}, body)
+	Elements.Gradient(sidebar, Color3.fromRGB(18, 18, 19), Color3.fromRGB(16, 16, 17), 90)
 	local tabList = make("Frame", {
 		BackgroundTransparency = 1,
 		Position = UDim2.fromOffset(6, 8),
@@ -979,11 +1008,12 @@ function HavocLib.new(options: {[string]: any}?)
 	window._tabList = tabList
 
 	local content = make("Frame", {
-		BackgroundColor3 = Color3.fromRGB(27, 27, 29),
+		BackgroundColor3 = Color3.fromRGB(26, 26, 27),
 		BackgroundTransparency = 0,
 		Position = UDim2.new(0, 164, 0, 0),
 		Size = UDim2.new(1, -164, 1, 0),
 	}, body)
+	Elements.Gradient(content, Color3.fromRGB(26, 26, 27), Color3.fromRGB(24, 24, 25), 145)
 	window.Content = content
 	make("Frame", {
 		BackgroundColor3 = Color3.fromRGB(255, 255, 255),
@@ -1150,6 +1180,7 @@ function HavocLib.new(options: {[string]: any}?)
 	tween(rootScale, Theme.Animation.Open.Time, { Scale = 1 }, Enum.EasingStyle.Quint)
 	root.BackgroundTransparency = 1
 	tween(root, Theme.Animation.Fade.Time, { BackgroundTransparency = 0 })
+	tween(rootStroke, Theme.Animation.Fade.Time, { Transparency = 0 })
 	return window
 end
 
@@ -1176,18 +1207,19 @@ function Window:Tab(options: {[string]: any})
 		AutoButtonColor = false,
 		BackgroundColor3 = COLORS.Container,
 		BorderSizePixel = 0,
-		Size = UDim2.new(1, 0, 0, 33),
+		Size = UDim2.new(1, 0, 0, 31),
 		Text = "",
 	}, self._tabList) :: TextButton
 	tab._button = tabButton
-	tabButton.BackgroundColor3 = Color3.fromRGB(40, 40, 42)
+	tabButton.BackgroundColor3 = Color3.fromRGB(32, 32, 34)
 	tabButton.BackgroundTransparency = 1
+	Elements.Gradient(tabButton, Color3.fromRGB(41, 41, 44), Color3.fromRGB(35, 35, 38), 100)
 	local tabScale = make("UIScale", { Scale = 1 }, tabButton)
 	tabButton.MouseButton1Down:Connect(function()
-		tween(tabScale, Theme.Animation.Press.Time, { Scale = Theme.PressScale }, Enum.EasingStyle.Sine)
+		tween(tabScale, Theme.Animation.Press.Time, { Scale = Theme.PressScale }, Enum.EasingStyle.Quint)
 	end)
 	local function releaseTabPress()
-		tween(tabScale, Theme.Animation.Release.Time, { Scale = 1 }, Enum.EasingStyle.Sine)
+		tween(tabScale, Theme.Animation.Release.Time, { Scale = 1 }, Enum.EasingStyle.Quint)
 	end
 	tabButton.MouseButton1Up:Connect(releaseTabPress)
 	tabButton.MouseButton1Click:Connect(releaseTabPress)
@@ -1228,7 +1260,7 @@ function Window:Tab(options: {[string]: any})
 	local page = make("ScrollingFrame", {
 		Active = true,
 		AutomaticCanvasSize = Enum.AutomaticSize.None,
-		BackgroundColor3 = Color3.fromRGB(28, 28, 30),
+		BackgroundColor3 = Color3.fromRGB(26, 26, 27),
 		BackgroundTransparency = 0,
 		BorderSizePixel = 0,
 		CanvasSize = UDim2.new(),
@@ -1238,7 +1270,7 @@ function Window:Tab(options: {[string]: any})
 		Visible = false,
 	}, self.Content) :: ScrollingFrame
 	tab._page = page
-	Elements.Gradient(page, Color3.fromRGB(28, 28, 30), Color3.fromRGB(26, 26, 28))
+	Elements.Gradient(page, Color3.fromRGB(26, 26, 27), Color3.fromRGB(24, 24, 25), 145)
 	if type(options.EmptyText) == "string" and options.EmptyText ~= "" then
 		local emptyState = make("Frame", {
 			Active = false,
@@ -1256,7 +1288,7 @@ function Window:Tab(options: {[string]: any})
 		emptyLabel.TextXAlignment = Enum.TextXAlignment.Center
 		tab._emptyState = emptyState
 	end
-	padding(page, Theme.Padding, 15)
+	padding(page, 17, 30)
 	local pageLayout = make("UIListLayout", {
 		Padding = UDim.new(0, 14),
 		SortOrder = Enum.SortOrder.LayoutOrder,
@@ -1272,7 +1304,7 @@ function Window:Tab(options: {[string]: any})
 	end
 	tabButton.MouseEnter:Connect(function()
 		if self._activeTab ~= tab then
-			tween(tabButton, Theme.HoverDuration, { BackgroundTransparency = 0.3 })
+			tween(tabButton, Theme.HoverDuration, { BackgroundTransparency = 0.15 })
 		end
 	end)
 	tabButton.MouseLeave:Connect(function()
@@ -1304,21 +1336,21 @@ function Window:SelectTab(tab: any)
 			item._emptyState.Visible = active and #item._cards == 0
 		end
 		tween(item._button, Theme.HoverDuration, {
-			BackgroundColor3 = Color3.fromRGB(40, 40, 42),
+			BackgroundColor3 = active and Color3.fromRGB(41, 41, 44) or Color3.fromRGB(32, 32, 34),
 			BackgroundTransparency = active and 0 or 1,
 		})
 		local itemStroke = item._button:FindFirstChildOfClass("UIStroke")
-		if itemStroke then itemStroke.Transparency = active and 0.91 or 1 end
+		if itemStroke then itemStroke.Transparency = active and 0.925 or 1 end
 		tween(item._indicator, 0.24, { Size = UDim2.new(0, 3, 0, active and 20 or 0) })
 		for _, child in ipairs(item._button:GetDescendants()) do
 			if child:IsA("TextLabel") and child ~= item.Badge then
 				tween(child, Theme.HoverDuration, { TextColor3 = active and COLORS.Text or COLORS.Muted })
 			elseif child:IsA("ImageLabel") then
-				tween(child, Theme.HoverDuration, { ImageColor3 = active and COLORS.Accent or COLORS.Muted })
+				tween(child, Theme.HoverDuration, { ImageColor3 = active and COLORS.Text or COLORS.Icon })
 			elseif child:IsA("Frame") and child.Name == "HavocIconPart" then
-				tween(child, Theme.HoverDuration, { BackgroundColor3 = active and COLORS.Text or COLORS.Muted })
+				tween(child, Theme.HoverDuration, { BackgroundColor3 = active and COLORS.Text or COLORS.Icon })
 			elseif child:IsA("UIStroke") then
-				tween(child, Theme.HoverDuration, { Color = active and COLORS.Text or COLORS.Muted })
+				tween(child, Theme.HoverDuration, { Color = active and COLORS.Text or COLORS.Icon })
 			end
 		end
 	end
@@ -1343,11 +1375,17 @@ function Tab:Section(options: {[string]: any})
 		Size = UDim2.new(1, 0, 0, 0),
 	}, self._page) :: Frame
 	corner(frame)
-	stroke(frame)
+	local sectionStroke = stroke(frame, 0.895)
 	padding(frame, 13)
 	local sectionColor = sectionOptions.BackgroundColor or COLORS.Container
-	local sectionGradient = sectionOptions.GradientColor or Color3.fromRGB(36, 36, 39)
+	local sectionGradient = sectionOptions.GradientColor or Color3.fromRGB(28, 28, 30)
 	Elements.Gradient(frame, sectionColor, sectionGradient)
+	frame.MouseEnter:Connect(function()
+		tween(sectionStroke, Theme.HoverDuration, { Transparency = 0.86 })
+	end)
+	frame.MouseLeave:Connect(function()
+		tween(sectionStroke, Theme.HoverDuration, { Transparency = 0.895 })
+	end)
 	local layout = make("UIListLayout", {
 		Padding = UDim.new(0, 9),
 		SortOrder = Enum.SortOrder.LayoutOrder,
@@ -1360,20 +1398,38 @@ function Tab:Section(options: {[string]: any})
 	local icon = iconImage(headingRow, sectionOptions.Icon or sectionOptions.Name or "layers", 18)
 	icon.AnchorPoint = Vector2.new(0.5, 0.5)
 	icon.Position = UDim2.new(0, 8, 0.5, 0)
-	icon.Size = UDim2.fromOffset(18, 18)
+	icon.Size = UDim2.fromOffset(16, 16)
+	local headingIconColor = Color3.fromRGB(237, 237, 238)
+	if icon:IsA("ImageLabel") then
+		icon.ImageColor3 = headingIconColor
+	elseif icon:IsA("TextLabel") then
+		icon.TextColor3 = headingIconColor
+	end
+	for _, iconPart in ipairs(icon:GetDescendants()) do
+		if iconPart:IsA("ImageLabel") then
+			iconPart.ImageColor3 = headingIconColor
+		elseif iconPart:IsA("TextLabel") then
+			iconPart.TextColor3 = headingIconColor
+		elseif iconPart:IsA("Frame") and iconPart.Name == "HavocIconPart" then
+			iconPart.BackgroundColor3 = headingIconColor
+		elseif iconPart:IsA("UIStroke") then
+			iconPart.Color = headingIconColor
+		end
+	end
 	local headingText = string.lower(sectionOptions.Name or "Section")
 	local heading = textLabel(headingRow, headingText, 12, COLORS.Text, Enum.Font.GothamBold)
-	heading.Position = UDim2.fromOffset(28, 0)
-	heading.Size = UDim2.new(1, -28, 1, 0)
+	heading.Position = UDim2.fromOffset(24, 0)
+	heading.Size = UDim2.new(1, -24, 1, 0)
 	local divider = make("Frame", {
 		AnchorPoint = Vector2.new(0, 0.5),
-		BackgroundColor3 = Color3.fromRGB(112, 112, 117),
-		BackgroundTransparency = 0.42,
+		BackgroundColor3 = Color3.fromRGB(66, 66, 69),
+		BackgroundTransparency = 0,
 		BorderSizePixel = 0,
 		Position = UDim2.new(0, 0, 0.5, 0),
 		Size = UDim2.new(0, 0, 0, 1),
 		ZIndex = headingRow.ZIndex,
 	}, headingRow)
+	Elements.Gradient(divider, Color3.fromRGB(66, 66, 69), Color3.fromRGB(36, 36, 38), 0)
 	local headingWidth = TextService:GetTextSize(
 		headingText,
 		12,
@@ -1381,7 +1437,7 @@ function Tab:Section(options: {[string]: any})
 		Vector2.new(1000, 22)
 	).X
 	local function updateDivider()
-		local dividerStart = math.min(30 + headingWidth, headingRow.AbsoluteSize.X)
+		local dividerStart = math.min(26 + headingWidth, headingRow.AbsoluteSize.X)
 		divider.Position = UDim2.new(0, dividerStart, 0.5, 0)
 		divider.Size = UDim2.new(0, math.max(0, headingRow.AbsoluteSize.X - dividerStart), 0, 1)
 	end
@@ -1939,10 +1995,12 @@ function Window:SetVisible(visible: boolean)
 		self.Root.BackgroundTransparency = 1
 		tween(self._scale, Theme.Animation.Open.Time, { Scale = 1 }, Enum.EasingStyle.Quint)
 		tween(self.Root, Theme.Animation.Fade.Time, { BackgroundTransparency = 0 })
+		tween(self._stroke, Theme.Animation.Fade.Time, { Transparency = 0 })
 	else
 		self._visible = false
 		tween(self._scale, Theme.HoverDuration, { Scale = Theme.OpenScale })
 		tween(self.Backdrop, Theme.Animation.Fade.Time, { BackgroundTransparency = 1 })
+		tween(self._stroke, Theme.Animation.Fade.Time, { Transparency = 1 })
 		local fade = tween(self.Root, Theme.Animation.Fade.Time, { BackgroundTransparency = 1 })
 		fade.Completed:Once(function()
 			if not self._visible then
