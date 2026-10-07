@@ -1,6 +1,4 @@
 --!strict
--- Havoc UI — standalone LocalScript.
--- This file contains both the library and the screenshot-matching demo window.
 
 -- Services
 local Players = game:GetService("Players")
@@ -13,11 +11,11 @@ local Theme = {}
 
 Theme.Colors = {
 	Background = Color3.fromRGB(17, 17, 18),
-	Container = Color3.fromRGB(34, 34, 36),
+	Container = Color3.fromRGB(39, 39, 41),
 	Interactive = Color3.fromRGB(40, 40, 42),
 	Accent = Color3.fromRGB(231, 231, 233),
-	Primary = Color3.fromRGB(219, 219, 223),
-	ToggleOn = Color3.fromRGB(218, 218, 222),
+	Primary = Color3.fromRGB(0, 145, 255),
+	ToggleOn = Color3.fromRGB(51, 199, 89),
 	Border = Color3.fromRGB(72, 72, 76),
 	Text = Color3.fromRGB(243, 243, 245),
 	Muted = Color3.fromRGB(192, 192, 196),
@@ -25,16 +23,16 @@ Theme.Colors = {
 	Success = Color3.fromRGB(220, 220, 226),
 }
 
-Theme.CornerRadius = UDim.new(0, 14)
+Theme.CornerRadius = UDim.new(0, 12)
 Theme.Stroke = {
 	Color = Color3.fromRGB(255, 255, 255),
-	Thickness = 1.15,
+	Thickness = 1,
 	Transparency = 0.89,
 	ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
 	LineJoinMode = Enum.LineJoinMode.Round,
 }
 Theme.PanelTransparency = 0.04
-Theme.HoverDuration = 0.18
+Theme.HoverDuration = 0.22
 Theme.PressScale = 0.975
 Theme.OpenScale = 0.97
 Theme.Padding = 16
@@ -179,9 +177,9 @@ local Elements = (function()
 			Size = size,
 			Text = text,
 			TextColor3 = COLORS.Text,
-			TextSize = 12,
+			TextSize = 11,
 		}, parent) :: TextButton
-		componentElements.Corner(element, 10)
+		componentElements.Corner(element, 9)
 		componentElements.Stroke(element)
 		componentElements.AddPressFeedback(element)
 		return element
@@ -225,7 +223,7 @@ local Elements = (function()
 		element.BackgroundColor3 = backgroundColor
 		element.TextColor3 = textColor
 		element.Font = Enum.Font.GothamBold
-		element.TextSize = 12
+		element.TextSize = 10
 		local gradientShade = if luminance > 0.55 then 0.08 else 0.23
 		componentElements.Gradient(element, backgroundColor, backgroundColor:Lerp(Color3.new(0, 0, 0), gradientShade))
 		element.TextXAlignment = Enum.TextXAlignment.Center
@@ -244,7 +242,7 @@ local Elements = (function()
 			Size = UDim2.new(1, 0, 0, 0),
 			Text = options.Content or "",
 			TextColor3 = options.Color or Color3.fromRGB(202, 202, 206),
-			TextSize = options.TextSize or 14,
+			TextSize = options.TextSize or 12,
 			TextWrapped = true,
 			TextXAlignment = Enum.TextXAlignment.Left,
 			TextYAlignment = Enum.TextYAlignment.Top,
@@ -257,22 +255,22 @@ local Elements = (function()
 		local row = componentElements.Make("Frame", {
 			BackgroundColor3 = COLORS.Interactive,
 			BorderSizePixel = 0,
-			Size = options.Size or UDim2.new(1, 0, 0, 50),
+			Size = options.Size or UDim2.new(1, 0, 0, 34),
 		}, parent)
-		componentElements.Corner(row, 12)
+		componentElements.Corner(row, 10)
 		local rowStroke = componentElements.Stroke(row, 0.93)
 		componentElements.Gradient(row, COLORS.Interactive, Color3.fromRGB(34, 34, 36))
-		local label = componentElements.TextLabel(row, options.Name, 13, Color3.fromRGB(213, 213, 216), Enum.Font.GothamMedium)
-		label.Position = UDim2.fromOffset(14, 0)
-		label.Size = UDim2.new(1, -76, 1, 0)
+		local label = componentElements.TextLabel(row, options.Name, 11, Color3.fromRGB(213, 213, 216), Enum.Font.GothamMedium)
+		label.Position = UDim2.fromOffset(11, 0)
+		label.Size = UDim2.new(1, -60, 1, 0)
 		local track = componentElements.Make("Frame", {
 			AnchorPoint = Vector2.new(1, 0.5),
 			BackgroundColor3 = value and COLORS.ToggleOn or Color3.fromRGB(69, 69, 73),
 			BorderSizePixel = 0,
-			Position = UDim2.new(1, -17, 0.5, 0),
-			Size = UDim2.fromOffset(44, 26),
+			Position = UDim2.new(1, -11, 0.5, 0),
+			Size = UDim2.fromOffset(34, 20),
 		}, row)
-		componentElements.Corner(track, 13)
+		componentElements.Corner(track, 20)
 		local trackStroke = componentElements.Stroke(track, 0)
 		trackStroke.Color = Color3.fromRGB(74, 74, 77)
 		componentElements.Gradient(track, Color3.fromRGB(69, 69, 73), Color3.fromRGB(60, 60, 63))
@@ -282,16 +280,16 @@ local Elements = (function()
 			BorderSizePixel = 0,
 			Size = UDim2.fromScale(1, 1),
 		}, track)
-		componentElements.Corner(onTrack, 13)
-		componentElements.Gradient(onTrack, COLORS.ToggleOn, Color3.fromRGB(192, 192, 196))
+		componentElements.Corner(onTrack, 20)
+		componentElements.Gradient(onTrack, COLORS.ToggleOn, Color3.fromRGB(47, 183, 82))
 		local knob = componentElements.Make("Frame", {
 			AnchorPoint = Vector2.new(0, 0.5),
 			BackgroundColor3 = Color3.fromRGB(238, 238, 240),
 			BorderSizePixel = 0,
 			Position = value and UDim2.new(1, -17, 0.5, 0) or UDim2.new(0, 3, 0.5, 0),
-			Size = UDim2.fromOffset(12, 12),
+			Size = UDim2.fromOffset(10, 10),
 		}, track)
-		componentElements.Corner(knob, 6)
+		componentElements.Corner(knob, 5)
 		componentElements.Stroke(knob, 0.94)
 		local hitbox = componentElements.Make("TextButton", {
 			BackgroundTransparency = 1,
@@ -308,7 +306,7 @@ local Elements = (function()
 				BackgroundTransparency = value and 0 or 1,
 			})
 			componentElements.Tween(trackStroke, Theme.HoverDuration, {
-				Color = value and Color3.fromRGB(190, 190, 194) or Color3.fromRGB(74, 74, 77),
+				Color = value and Color3.fromRGB(69, 211, 106) or Color3.fromRGB(74, 74, 77),
 			})
 			componentElements.Tween(knob, Theme.HoverDuration, {
 				Position = value and UDim2.new(1, -17, 0.5, 0) or UDim2.new(0, 3, 0.5, 0),
@@ -359,7 +357,7 @@ local Elements = (function()
 			Size = UDim2.fromOffset(56, 20),
 			Text = tostring(value),
 			TextColor3 = COLORS.Text,
-			TextSize = 12,
+			TextSize = 11,
 		}, row) :: TextBox
 		componentElements.Corner(valueBox, 20)
 		componentElements.Stroke(valueBox)
@@ -509,8 +507,7 @@ local Elements = (function()
 			line(iconSize * 0.5, iconSize * 0.81, 1.2, iconSize * 0.2, 0)
 			return homeIcon
 		end
-		if normalizedIcon == "aimbot" or normalizedIcon == "silent"
-			or normalizedIcon == "aim" or normalizedIcon == "target" or normalizedIcon == "combat" then
+		if normalizedIcon == "aimbot" then
 			local crosshair = componentElements.Make("Frame", {
 				BackgroundTransparency = 1,
 				Size = UDim2.fromOffset(size, size),
@@ -543,9 +540,9 @@ local Elements = (function()
 			tick(size * 0.74, size * 0.5 - 0.6, size * 0.18, 1.2)
 			return crosshair
 		end
-		if normalizedIcon == "settings" or normalizedIcon == "general" or normalizedIcon == "exploits"
+		if normalizedIcon == "settings" or normalizedIcon == "exploits"
 			or normalizedIcon == "movement" or normalizedIcon == "esp"
-			or normalizedIcon == "sparkles" or normalizedIcon == "custom" then
+			or normalizedIcon == "sparkles" then
 			local iconRoot = componentElements.Make("Frame", {
 				BackgroundTransparency = 1,
 				Size = UDim2.fromOffset(size, size),
@@ -563,7 +560,7 @@ local Elements = (function()
 				componentElements.Corner(segment, math.min(width, height) / 2)
 				return segment
 			end
-			if normalizedIcon == "settings" or normalizedIcon == "general" then
+			if normalizedIcon == "settings" then
 				local ring = componentElements.Make("Frame", {
 					AnchorPoint = Vector2.new(0.5, 0.5),
 					BackgroundTransparency = 1,
@@ -674,7 +671,7 @@ local Elements = (function()
 		}
 		local iconText = ""
 		if type(icon) == "string" then
-			iconText = namedIcons[normalizedIcon] or (icon:match("^[%a%s_%-]+$") and "" or icon)
+			iconText = namedIcons[normalizedIcon] or (icon:match("^[%a%s_%-]+$") and "▤" or icon)
 		end
 		local label = componentElements.TextLabel(parent, iconText, size, COLORS.Muted, Enum.Font.GothamMedium)
 		label.TextXAlignment = Enum.TextXAlignment.Center
@@ -790,13 +787,12 @@ function HavocLib.new(options: {[string]: any}?)
 	self.Window = window
 	window.Backdrop = backdrop
 
-	local requestedWindowSize = config.Size or UDim2.fromOffset(640, 496)
 	local root = make("Frame", {
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		BackgroundColor3 = COLORS.Background,
 		BorderSizePixel = 0,
 		Position = config.Position or UDim2.fromScale(0.5, 0.5),
-		Size = requestedWindowSize,
+		Size = config.Size or UDim2.fromOffset(460, 356),
 	}, screen) :: Frame
 	window.Root = root
 	make("UISizeConstraint", {
@@ -807,15 +803,7 @@ function HavocLib.new(options: {[string]: any}?)
 		local camera = Workspace.CurrentCamera
 		if not camera then return end
 		local viewport = camera.ViewportSize
-		local requestedWidth = requestedWindowSize.X.Scale * viewport.X + requestedWindowSize.X.Offset
-		local requestedHeight = requestedWindowSize.Y.Scale * viewport.Y + requestedWindowSize.Y.Offset
-		local maxWidth = math.min(760, math.max(1, viewport.X - 12))
-		local maxHeight = math.min(600, math.max(1, viewport.Y - 12))
-		root.Size = UDim2.fromOffset(
-			math.clamp(requestedWidth, 1, maxWidth),
-			math.clamp(requestedHeight, 1, maxHeight)
-		)
-		responsiveScale.Scale = 1
+		responsiveScale.Scale = math.max(0.1, math.min(1, (viewport.X - 20) / 460, (viewport.Y - 20) / 356))
 	end
 	updateResponsiveScale()
 	local viewportConnection: RBXScriptConnection? = nil
@@ -841,7 +829,7 @@ function HavocLib.new(options: {[string]: any}?)
 	table.insert(window._connections, cameraConnection)
 	connectViewport()
 	root.ClipsDescendants = true
-	corner(root, 18)
+	corner(root, 14)
 	local rootStroke = stroke(root, 0)
 	rootStroke.Color = Color3.fromRGB(48, 48, 51)
 	rootStroke.Transparency = 1
@@ -855,11 +843,11 @@ function HavocLib.new(options: {[string]: any}?)
 		BackgroundColor3 = Color3.fromRGB(22, 22, 23),
 		ClipsDescendants = true,
 		Position = UDim2.fromScale(0, 0),
-		Size = UDim2.new(1, 0, 0, 55),
+		Size = UDim2.new(1, 0, 0, 39),
 	}, root)
 	window.Header = header
-	corner(header, 18)
-	padding(header, 12, 0)
+	corner(header, 14)
+	padding(header, 9, 0)
 	Elements.Gradient(header, Color3.fromRGB(22, 22, 23), Color3.fromRGB(17, 17, 18))
 	make("Frame", {
 		AnchorPoint = Vector2.new(0, 1),
@@ -869,14 +857,13 @@ function HavocLib.new(options: {[string]: any}?)
 		Position = UDim2.new(0, 0, 1, 0),
 		Size = UDim2.new(1, 0, 0, 1),
 	}, header)
-	local configuredLogo = if config.Logo == nil then 81325599465401 else config.Logo
-	if configuredLogo ~= nil then
+	if config.Logo ~= nil then
 		local logoAsset: string?
-		if type(configuredLogo) == "number" and configuredLogo > 0 and configuredLogo % 1 == 0 then
-			logoAsset = "rbxassetid://" .. tostring(configuredLogo)
-		elseif type(configuredLogo) == "string" then
-			local numericId = string.match(configuredLogo, "^%d+$")
-			local assetUri = string.match(configuredLogo, "^rbxassetid://%d+$")
+		if type(config.Logo) == "number" and config.Logo > 0 and config.Logo % 1 == 0 then
+			logoAsset = "rbxassetid://" .. tostring(config.Logo)
+		elseif type(config.Logo) == "string" then
+			local numericId = string.match(config.Logo, "^%d+$")
+			local assetUri = string.match(config.Logo, "^rbxassetid://%d+$")
 			logoAsset = numericId and ("rbxassetid://" .. numericId) or assetUri
 		end
 		assert(logoAsset, "Logo must be a positive Roblox asset ID or rbxassetid:// URI")
@@ -885,10 +872,10 @@ function HavocLib.new(options: {[string]: any}?)
 			BorderSizePixel = 0,
 			Image = logoAsset,
 			ScaleType = Enum.ScaleType.Crop,
-			Size = UDim2.fromOffset(28, 28),
+			Size = UDim2.fromOffset(21, 21),
 		}, header) :: ImageLabel
 		logoImage.AnchorPoint = Vector2.new(0, 0.5)
-		logoImage.Position = UDim2.new(0, 12, 0.5, 0)
+		logoImage.Position = UDim2.new(0, 0, 0.5, 0)
 		corner(logoImage)
 		local logoCorner = logoImage:FindFirstChildOfClass("UICorner")
 		if logoCorner then logoCorner.CornerRadius = UDim.new(0, 6) end
@@ -897,26 +884,26 @@ function HavocLib.new(options: {[string]: any}?)
 		local logo = make("Frame", {
 			BackgroundColor3 = COLORS.Interactive,
 			BorderSizePixel = 0,
-			Size = UDim2.fromOffset(28, 28),
+			Size = UDim2.fromOffset(21, 21),
 		}, header)
 		logo.AnchorPoint = Vector2.new(0, 0.5)
-		logo.Position = UDim2.new(0, 12, 0.5, 0)
+		logo.Position = UDim2.new(0, 0, 0.5, 0)
 		corner(logo, 6)
 		stroke(logo)
-		local monogram = textLabel(logo, "h", 18, COLORS.Text, Enum.Font.GothamBold)
+		local monogram = textLabel(logo, "h", 16, COLORS.Text, Enum.Font.GothamBold)
 		monogram.Size = UDim2.fromScale(1, 1)
 		monogram.TextXAlignment = Enum.TextXAlignment.Center
 	end
-	local title = textLabel(header, config.Title or "havoc lib", 16, COLORS.Text, Enum.Font.GothamBold)
-	title.Position = UDim2.fromOffset(50, 7)
-	title.Size = UDim2.new(0.25, 0, 0, 19)
-	local subtitle = textLabel(header, config.Subtitle or "made by convict", 11, Color3.fromRGB(194, 194, 198))
-	subtitle.Position = UDim2.fromOffset(50, 27)
-	subtitle.Size = UDim2.new(0.25, 0, 0, 15)
-	local version = textLabel(header, config.Version or "v0.1.0", 11, COLORS.Muted, Enum.Font.GothamMedium)
+	local title = textLabel(header, config.Title or "havoc lib", 12, COLORS.Text, Enum.Font.GothamBold)
+	title.Position = UDim2.fromOffset(29, 3)
+	title.Size = UDim2.new(0.25, 0, 0, 16)
+	local subtitle = textLabel(header, config.Subtitle or "made by convict", 9, Color3.fromRGB(194, 194, 198))
+	subtitle.Position = UDim2.fromOffset(29, 18)
+	subtitle.Size = UDim2.new(0.25, 0, 0, 12)
+	local version = textLabel(header, config.Version or "v0.1.0", 9, COLORS.Muted, Enum.Font.GothamMedium)
 	version.AnchorPoint = Vector2.new(0, 0.5)
-	version.Position = UDim2.new(0, 170, 0.5, 0)
-	version.Size = UDim2.fromOffset(58, 28)
+	version.Position = UDim2.new(0, 99, 0.5, 0)
+	version.Size = UDim2.fromOffset(58, 21)
 	version.BackgroundColor3 = COLORS.Interactive
 	version.TextColor3 = Color3.fromRGB(232, 232, 235)
 	corner(version)
@@ -933,7 +920,7 @@ function HavocLib.new(options: {[string]: any}?)
 		PlaceholderColor3 = COLORS.Muted,
 		PlaceholderText = "search components...",
 		Position = UDim2.new(1, -102, 0.5, 0),
-		Size = UDim2.new(0.34, 0, 0, 30),
+		Size = UDim2.new(0.34, 0, 0, 26),
 		Text = "",
 		TextColor3 = COLORS.Text,
 		TextSize = 12,
@@ -949,7 +936,7 @@ function HavocLib.new(options: {[string]: any}?)
 	local windowActions = make("Frame", {
 		AnchorPoint = Vector2.new(1, 0.5),
 		BackgroundTransparency = 1,
-	Position = UDim2.new(1, -12, 0.5, 0),
+		Position = UDim2.new(1, 0, 0.5, 0),
 		Size = UDim2.fromOffset(82, 26),
 	}, header)
 	local actionsLayout = make("UIListLayout", {
@@ -984,7 +971,9 @@ function HavocLib.new(options: {[string]: any}?)
 		if actionCorner then actionCorner.CornerRadius = UDim.new(0, 9) end
 		actionButton.MouseEnter:Connect(function()
 			tween(actionButton, Theme.HoverDuration, {
-				BackgroundColor3 = Color3.fromRGB(48, 48, 51),
+				BackgroundColor3 = actionButton == closeButton
+					and Color3.fromRGB(104, 43, 47)
+						or Color3.fromRGB(48, 48, 51),
 				BackgroundTransparency = 0,
 				TextColor3 = COLORS.Text,
 			})
@@ -1006,22 +995,22 @@ function HavocLib.new(options: {[string]: any}?)
 
 	local body = make("Frame", {
 		BackgroundTransparency = 1,
-		Position = UDim2.new(0, 0, 0, 55),
-		Size = UDim2.new(1, 0, 1, config.ShowMetrics == true and -85 or -55),
+		Position = UDim2.new(0, 0, 0, 39),
+		Size = UDim2.new(1, 0, 1, config.ShowMetrics == true and -69 or -39),
 	}, root)
 	window.Body = body
 	local sidebar = make("Frame", {
-		BackgroundColor3 = Color3.fromRGB(17, 17, 18),
+		BackgroundColor3 = Color3.fromRGB(18, 18, 19),
 		BackgroundTransparency = 0,
 		BorderSizePixel = 0,
 		Position = UDim2.fromScale(0, 0),
-		Size = UDim2.new(0.356, 0, 1, 0),
+		Size = UDim2.new(0, 164, 1, 0),
 	}, body)
-	Elements.Gradient(sidebar, Color3.fromRGB(17, 17, 18), Color3.fromRGB(15, 15, 16), 90)
+	Elements.Gradient(sidebar, Color3.fromRGB(18, 18, 19), Color3.fromRGB(16, 16, 17), 90)
 	local tabList = make("Frame", {
 		BackgroundTransparency = 1,
-		Position = UDim2.fromOffset(10, 13),
-		Size = UDim2.new(1, -20, 1, -26),
+		Position = UDim2.fromOffset(6, 8),
+		Size = UDim2.new(1, -12, 1, -16),
 	}, sidebar)
 	local tabLayout = make("UIListLayout", {
 		Padding = UDim.new(0, 1),
@@ -1030,18 +1019,18 @@ function HavocLib.new(options: {[string]: any}?)
 	window._tabList = tabList
 
 	local content = make("Frame", {
-		BackgroundColor3 = Color3.fromRGB(27, 27, 28),
+		BackgroundColor3 = Color3.fromRGB(26, 26, 27),
 		BackgroundTransparency = 0,
-		Position = UDim2.new(0.356, 0, 0, 0),
-		Size = UDim2.new(0.644, 0, 1, 0),
+		Position = UDim2.new(0, 164, 0, 0),
+		Size = UDim2.new(1, -164, 1, 0),
 	}, body)
-	Elements.Gradient(content, Color3.fromRGB(27, 27, 28), Color3.fromRGB(25, 25, 26), 145)
+	Elements.Gradient(content, Color3.fromRGB(26, 26, 27), Color3.fromRGB(24, 24, 25), 145)
 	window.Content = content
 	make("Frame", {
 		BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-		BackgroundTransparency = 0.93,
+		BackgroundTransparency = 0.955,
 		BorderSizePixel = 0,
-		Position = UDim2.new(0.356, -1, 0, 0),
+		Position = UDim2.new(0, 163, 0, 0),
 		Size = UDim2.new(0, 1, 1, 0),
 	}, body)
 
@@ -1065,7 +1054,7 @@ function HavocLib.new(options: {[string]: any}?)
 			window._wasMetricsVisible = status.Visible
 			body.Visible = false
 			status.Visible = false
-			tween(root, Theme.HoverDuration, { Size = UDim2.new(root.Size.X.Scale, root.Size.X.Offset, 0, 55) })
+			tween(root, Theme.HoverDuration, { Size = UDim2.new(root.Size.X.Scale, root.Size.X.Offset, 0, 46) })
 			minimizeButton.Text = "+"
 		else
 			body.Visible = true
@@ -1217,11 +1206,11 @@ function Window:Tab(options: {[string]: any})
 	if type(options.CaptionBefore) == "string" and options.CaptionBefore ~= "" then
 		local caption = make("Frame", {
 			BackgroundTransparency = 1,
-			Size = UDim2.new(1, 0, 0, 40),
+			Size = UDim2.new(1, 0, 0, 25),
 		}, self._tabList) :: Frame
-		local captionLabel = textLabel(caption, options.CaptionBefore, 12, Color3.fromRGB(164, 164, 168))
-		captionLabel.Position = UDim2.new(0, 10, 0, 11)
-		captionLabel.Size = UDim2.new(1, -16, 0, 16)
+		local captionLabel = textLabel(caption, options.CaptionBefore, 11, Color3.fromRGB(180, 180, 184))
+		captionLabel.Position = UDim2.new(0, 8, 0, 8)
+		captionLabel.Size = UDim2.new(1, -16, 0, 13)
 		tab._caption = caption
 	end
 
@@ -1229,7 +1218,7 @@ function Window:Tab(options: {[string]: any})
 		AutoButtonColor = false,
 		BackgroundColor3 = COLORS.Container,
 		BorderSizePixel = 0,
-		Size = UDim2.new(1, 0, 0, 42),
+		Size = UDim2.new(1, 0, 0, 31),
 		Text = "",
 	}, self._tabList) :: TextButton
 	tab._button = tabButton
@@ -1247,15 +1236,15 @@ function Window:Tab(options: {[string]: any})
 	tabButton.MouseButton1Click:Connect(releaseTabPress)
 	corner(tabButton)
 	local tabCorner = tabButton:FindFirstChildOfClass("UICorner")
-		if tabCorner then tabCorner.CornerRadius = UDim.new(0, 12) end
+	if tabCorner then tabCorner.CornerRadius = UDim.new(0, 9) end
 	local tabStroke = stroke(tabButton)
 	tabStroke.Transparency = 1
 	local icon = iconImage(tabButton, options.Icon or options.Name, 18)
 	icon.AnchorPoint = Vector2.new(0.5, 0.5)
-		icon.Position = UDim2.new(0, 20, 0.5, 0)
-		icon.Size = UDim2.fromOffset(18, 18)
-		local label = textLabel(tabButton, string.lower(options.Name), 14, COLORS.Muted, Enum.Font.GothamMedium)
-		label.Position = UDim2.fromOffset(44, 0)
+	icon.Position = UDim2.new(0, 18, 0.5, 0)
+	icon.Size = UDim2.fromOffset(18, 18)
+	local label = textLabel(tabButton, string.lower(options.Name), 11, COLORS.Muted, Enum.Font.GothamMedium)
+	label.Position = UDim2.fromOffset(38, 0)
 	label.Size = UDim2.new(1, -65, 1, 0)
 	local badge = textLabel(tabButton, "", 10, COLORS.Text, Enum.Font.GothamBold)
 	badge.AnchorPoint = Vector2.new(1, 0.5)
@@ -1282,7 +1271,7 @@ function Window:Tab(options: {[string]: any})
 	local page = make("ScrollingFrame", {
 		Active = true,
 		AutomaticCanvasSize = Enum.AutomaticSize.None,
-		BackgroundColor3 = Color3.fromRGB(27, 27, 28),
+		BackgroundColor3 = Color3.fromRGB(26, 26, 27),
 		BackgroundTransparency = 0,
 		BorderSizePixel = 0,
 		CanvasSize = UDim2.new(),
@@ -1292,7 +1281,7 @@ function Window:Tab(options: {[string]: any})
 		Visible = false,
 	}, self.Content) :: ScrollingFrame
 	tab._page = page
-	Elements.Gradient(page, Color3.fromRGB(27, 27, 28), Color3.fromRGB(25, 25, 26), 145)
+	Elements.Gradient(page, Color3.fromRGB(26, 26, 27), Color3.fromRGB(24, 24, 25), 145)
 	if type(options.EmptyText) == "string" and options.EmptyText ~= "" then
 		local emptyState = make("Frame", {
 			Active = false,
@@ -1310,13 +1299,9 @@ function Window:Tab(options: {[string]: any})
 		emptyLabel.TextXAlignment = Enum.TextXAlignment.Center
 		tab._emptyState = emptyState
 	end
-	local pageInsets = padding(page, 26, 43) :: UIPadding
-	pageInsets.PaddingLeft = UDim.new(0.063, 0)
-	pageInsets.PaddingRight = UDim.new(0.063, 0)
-	pageInsets.PaddingTop = UDim.new(0.098, 0)
-	pageInsets.PaddingBottom = UDim.new(0.06, 0)
+	padding(page, 17, 30)
 	local pageLayout = make("UIListLayout", {
-		Padding = UDim.new(0, 20),
+		Padding = UDim.new(0, 14),
 		SortOrder = Enum.SortOrder.LayoutOrder,
 	}, page) :: UIListLayout
 	setCanvasHeight(page, pageLayout, 20)
@@ -1362,12 +1347,12 @@ function Window:SelectTab(tab: any)
 			item._emptyState.Visible = active and #item._cards == 0
 		end
 		tween(item._button, Theme.HoverDuration, {
-			BackgroundColor3 = active and Color3.fromRGB(43, 43, 45) or Color3.fromRGB(32, 32, 34),
+			BackgroundColor3 = active and Color3.fromRGB(41, 41, 44) or Color3.fromRGB(32, 32, 34),
 			BackgroundTransparency = active and 0 or 1,
 		})
 		local itemStroke = item._button:FindFirstChildOfClass("UIStroke")
-		if itemStroke then itemStroke.Transparency = active and 0.87 or 1 end
-		tween(item._indicator, 0.24, { Size = UDim2.new(0, 3, 0, active and 22 or 0) })
+		if itemStroke then itemStroke.Transparency = active and 0.925 or 1 end
+		tween(item._indicator, 0.24, { Size = UDim2.new(0, 3, 0, active and 20 or 0) })
 		for _, child in ipairs(item._button:GetDescendants()) do
 			if child:IsA("TextLabel") and child ~= item.Badge then
 				tween(child, Theme.HoverDuration, { TextColor3 = active and COLORS.Text or COLORS.Muted })
@@ -1400,30 +1385,30 @@ function Tab:Section(options: {[string]: any})
 		BorderSizePixel = 0,
 		Size = UDim2.new(1, 0, 0, 0),
 	}, self._page) :: Frame
-	corner(frame, 16)
-	local sectionStroke = stroke(frame, 0.86)
-	padding(frame, 18)
+	corner(frame)
+	local sectionStroke = stroke(frame, 0.83)
+	padding(frame, 13)
 	local sectionColor = sectionOptions.BackgroundColor or COLORS.Container
-	local sectionGradient = sectionOptions.GradientColor or Color3.fromRGB(29, 29, 31)
+	local sectionGradient = sectionOptions.GradientColor or Color3.fromRGB(28, 28, 30)
 	Elements.Gradient(frame, sectionColor, sectionGradient)
 	frame.MouseEnter:Connect(function()
 		tween(sectionStroke, Theme.HoverDuration, { Transparency = 0.76 })
 	end)
 	frame.MouseLeave:Connect(function()
-		tween(sectionStroke, Theme.HoverDuration, { Transparency = 0.86 })
+		tween(sectionStroke, Theme.HoverDuration, { Transparency = 0.83 })
 	end)
 	local layout = make("UIListLayout", {
-		Padding = UDim.new(0, 13),
+		Padding = UDim.new(0, 9),
 		SortOrder = Enum.SortOrder.LayoutOrder,
 	}, frame) :: UIListLayout
 	local headingRow = make("Frame", {
 		BackgroundTransparency = 1,
-		Size = UDim2.new(1, 0, 0, 24),
+		Size = UDim2.new(1, 0, 0, 22),
 		LayoutOrder = -1,
 	}, frame)
 	local icon = iconImage(headingRow, sectionOptions.Icon or sectionOptions.Name or "layers", 16)
 	icon.AnchorPoint = Vector2.new(0.5, 0.5)
-	icon.Position = UDim2.new(0, 12, 0.5, 0)
+	icon.Position = UDim2.new(0, 8, 0.5, 0)
 	icon.Size = UDim2.fromOffset(16, 16)
 	local headingIconColor = Color3.fromRGB(237, 237, 238)
 	if icon:IsA("ImageLabel") then
@@ -1445,32 +1430,32 @@ function Tab:Section(options: {[string]: any})
 	local headingText = string.lower(sectionOptions.Name or "Section")
 	local headingWidth = TextService:GetTextSize(
 		headingText,
-		16,
+		12,
 		Enum.Font.GothamBold,
-		Vector2.new(1000, 24)
+		Vector2.new(1000, 22)
 	).X
-	local heading = textLabel(headingRow, headingText, 16, COLORS.Text, Enum.Font.GothamBold)
-	heading.Position = UDim2.fromOffset(33, 0)
+	local heading = textLabel(headingRow, headingText, 12, COLORS.Text, Enum.Font.GothamBold)
+	heading.Position = UDim2.fromOffset(24, 0)
 	heading.Size = UDim2.new(0, headingWidth + 4, 1, 0)
 	local divider = make("Frame", {
 		AnchorPoint = Vector2.new(0, 0.5),
 		BackgroundColor3 = Color3.fromRGB(82, 82, 86),
-		BackgroundTransparency = 0.22,
+		BackgroundTransparency = 0,
 		BorderSizePixel = 0,
-		Position = UDim2.new(0, 42 + headingWidth, 0.5, 0),
-		Size = UDim2.new(1, -(42 + headingWidth), 0, 1),
+		Position = UDim2.new(0, 31 + headingWidth, 0.5, 0),
+		Size = UDim2.new(1, -(31 + headingWidth), 0, 2),
 		ZIndex = headingRow.ZIndex + 1,
 	}, headingRow)
 	corner(divider, 1)
 	local dividerGradient = Elements.Gradient(divider, Color3.fromRGB(82, 82, 86), Color3.fromRGB(50, 50, 53), 0) :: UIGradient
 	dividerGradient.Transparency = NumberSequence.new({
 		NumberSequenceKeypoint.new(0, 0),
-		NumberSequenceKeypoint.new(1, 0.8),
+		NumberSequenceKeypoint.new(1, 0.72),
 	})
 	local function updateDivider()
-		local dividerStart = 42 + headingWidth
+		local dividerStart = 31 + headingWidth
 		divider.Position = UDim2.new(0, dividerStart, 0.5, 0)
-		divider.Size = UDim2.new(1, -dividerStart, 0, 1)
+		divider.Size = UDim2.new(1, -dividerStart, 0, 2)
 	end
 	headingRow:GetPropertyChangedSignal("AbsoluteSize"):Connect(updateDivider)
 	updateDivider()
@@ -1522,7 +1507,6 @@ function Section:Paragraph(options: {[string]: any})
 		BackgroundTransparency = 1,
 		Size = UDim2.new(1, 0, 0, 0),
 	}, self._frame)
-	padding(paragraph, 0, 8)
 	local title
 	if options.HideTitle ~= true then
 		title = textLabel(paragraph, options.Name, options.TitleSize or 14, COLORS.Text, Enum.Font.GothamMedium)
@@ -1551,7 +1535,7 @@ function Section:Buttons(options: {[string]: any})
 	local gap = options.Gap or 8
 	local row = make("Frame", {
 		BackgroundTransparency = 1,
-		Size = UDim2.new(1, 0, 0, options.Height or 47),
+		Size = UDim2.new(1, 0, 0, options.Height or 32),
 	}, self._frame)
 	local layout = make("UIListLayout", {
 		FillDirection = Enum.FillDirection.Horizontal,
@@ -1563,7 +1547,7 @@ function Section:Buttons(options: {[string]: any})
 		assert(type(item) == "table" and type(item.Name) == "string", "Each button requires a Name")
 		local widthScale = 1 / #items
 		local buttonOptions = table.clone(item)
-		buttonOptions.Size = UDim2.new(widthScale, -gap * (#items - 1) / #items, 0, options.Height or 47)
+		buttonOptions.Size = UDim2.new(widthScale, -gap * (#items - 1) / #items, 0, options.Height or 32)
 		Elements.ActionButton(row, buttonOptions, self._window._library).LayoutOrder = index
 	end
 	layout.Name = "ButtonLayout"
@@ -1581,7 +1565,7 @@ function Section:Row(options: {[string]: any})
 	assert(#items > 0, "Row requires at least one item")
 	local columns = math.clamp(math.floor(options.Columns or #items), 1, #items)
 	local gap = options.Gap or 8
-	local itemHeight = options.Height or 50
+	local itemHeight = options.Height or 38
 	local row = make("Frame", {
 		BackgroundTransparency = 1,
 		Size = UDim2.new(1, 0, 0, itemHeight),
@@ -2340,100 +2324,4 @@ end
 
 HavocLib.Colors = COLORS
 HavocLib.Theme = Theme
-
--- Standalone demo window. The button callbacks are safe examples to replace
--- with your own code; the library itself remains local to this single file.
-local ui = HavocLib.new({
-	Title = "havoc lib",
-	Subtitle = "made by convict",
-	Version = "v0.1.0",
-	Logo = 81325599465401,
-})
-
-local main = ui:Tab({
-	Name = "main",
-	Icon = "home",
-})
-
-local movement = main:Section({
-	Name = "movement",
-	Icon = "movement",
-})
-
-local markersToggle: any = nil
-
-movement:Buttons({
-	Height = 47,
-	Gap = 10,
-	Buttons = {
-		{
-			Name = "quick action",
-			Color = Color3.fromRGB(231, 231, 233),
-			Callback = function()
-				ui:Notify({
-					Title = "quick action",
-					Content = "Replace this callback with your action.",
-					Duration = 3,
-				})
-			end,
-		},
-		{
-			Name = "reset demo",
-			Color = Color3.fromRGB(54, 54, 57),
-			Callback = function()
-				if markersToggle then
-					markersToggle:Set(false)
-				end
-				ui:Notify({
-					Title = "demo reset",
-					Content = "The demo toggle is off.",
-					Duration = 2,
-				})
-			end,
-		},
-	},
-})
-
-markersToggle = movement:Toggle({
-	Name = "show markers",
-	Default = false,
-})
-
-local general = main:Section({
-	Name = "general",
-	Icon = "settings",
-})
-
-general:Paragraph({
-	Name = "general",
-	HideTitle = true,
-	Content = "controls can be arranged vertically or grouped into compact rows.",
-})
-
-ui:Tab({
-	Name = "exploits",
-	Icon = "exploits",
-	CaptionBefore = "silent",
-})
-
-ui:Tab({
-	Name = "aimbot",
-	Icon = "aimbot",
-})
-
-ui:Tab({
-	Name = "esp",
-	Icon = "esp",
-})
-
-ui:Tab({
-	Name = "info",
-	Icon = "info",
-})
-
-ui:Tab({
-	Name = "custom",
-	Icon = "sparkles",
-	CaptionBefore = "custom empty page tab",
-	EmptyText = "this page is empty for now",
-})
+return HavocLib
