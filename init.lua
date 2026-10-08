@@ -11,31 +11,31 @@ local Workspace = game:GetService("Workspace")
 local Theme = {}
 
 Theme.Colors = {
-	Background = Color3.fromRGB(17, 17, 18),
-	Container = Color3.fromRGB(39, 39, 41),
-	Interactive = Color3.fromRGB(40, 40, 42),
-	Accent = Color3.fromRGB(231, 231, 233),
-	Primary = Color3.fromRGB(0, 145, 255),
-	ToggleOn = Color3.fromRGB(68, 151, 255),
-	Border = Color3.fromRGB(72, 72, 76),
-	Text = Color3.fromRGB(243, 243, 245),
-	Muted = Color3.fromRGB(192, 192, 196),
-	Icon = Color3.fromRGB(164, 164, 168),
-	Success = Color3.fromRGB(220, 220, 226),
+	Background = Color3.fromRGB(14, 15, 17),
+	Container = Color3.fromRGB(29, 30, 33),
+	Interactive = Color3.fromRGB(39, 40, 44),
+	Accent = Color3.fromRGB(238, 239, 242),
+	Primary = Color3.fromRGB(10, 132, 255),
+	ToggleOn = Color3.fromRGB(48, 209, 88),
+	Border = Color3.fromRGB(72, 74, 81),
+	Text = Color3.fromRGB(245, 245, 247),
+	Muted = Color3.fromRGB(174, 176, 183),
+	Icon = Color3.fromRGB(155, 158, 167),
+	Success = Color3.fromRGB(48, 209, 88),
 }
 
-Theme.CornerRadius = UDim.new(0, 9)
+Theme.CornerRadius = UDim.new(0, 12)
 Theme.Stroke = {
 	Color = Color3.fromRGB(255, 255, 255),
-	Thickness = 1,
-	Transparency = 0.94,
+	Thickness = 1.2,
+	Transparency = 0.92,
 	ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
 	LineJoinMode = Enum.LineJoinMode.Round,
 }
 Theme.PanelTransparency = 0
-Theme.HoverDuration = 0.22
-Theme.PressScale = 0.975
-Theme.OpenScale = 0.97
+Theme.HoverDuration = 0.2
+Theme.PressScale = 0.985
+Theme.OpenScale = 0.95
 Theme.Padding = 16
 Theme.Animation = {
 	Hover = TweenInfo.new(Theme.HoverDuration, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
@@ -191,7 +191,7 @@ local Elements = (function()
 			TextColor3 = COLORS.Text,
 			TextSize = 13,
 		}, parent)
-		componentElements.Corner(element, 9)
+		componentElements.Corner(element, 11)
 		local outline = componentElements.Stroke(element)
 		element.SelectionGained:Connect(function()
 			componentElements.Tween(outline, Theme.HoverDuration, {
@@ -282,23 +282,23 @@ local Elements = (function()
 	function componentElements.Toggle(parent, options, owner)
 		local value = options.Default == true
 		local row = componentElements.Make("Frame", {
-			BackgroundColor3 = Color3.fromRGB(35, 35, 38),
+			BackgroundColor3 = Color3.fromRGB(38, 39, 43),
 			BorderSizePixel = 0,
-			Size = options.Size or UDim2.new(1, 0, 0, 46),
+			Size = options.Size or UDim2.new(1, 0, 0, 50),
 		}, parent)
-		componentElements.Corner(row, 7)
-		local rowStroke = componentElements.Stroke(row, 0.97)
+		componentElements.Corner(row, 12)
+		local rowStroke = componentElements.Stroke(row, 0.93)
 		local label = componentElements.TextLabel(row, options.Name, 14, COLORS.Text, Enum.Font.GothamMedium)
 		label.Position = UDim2.fromOffset(29, 0)
 		label.Size = UDim2.new(1, -97, 1, 0)
 		local track = componentElements.Make("Frame", {
 			AnchorPoint = Vector2.new(1, 0.5),
-			BackgroundColor3 = value and COLORS.ToggleOn or Color3.fromRGB(69, 69, 73),
+			BackgroundColor3 = value and COLORS.ToggleOn or Color3.fromRGB(67, 68, 73),
 			BorderSizePixel = 0,
 			Position = UDim2.new(1, -16, 0.5, 0),
-			Size = UDim2.fromOffset(42, 24),
+			Size = UDim2.fromOffset(46, 26),
 		}, row)
-		componentElements.Corner(track, 20)
+		componentElements.Corner(track, 26)
 		local trackStroke = componentElements.Stroke(track, 0)
 		trackStroke.Color = Color3.fromRGB(91, 91, 96)
 		local onTrack = componentElements.Make("Frame", {
@@ -307,16 +307,16 @@ local Elements = (function()
 			BorderSizePixel = 0,
 			Size = UDim2.fromScale(1, 1),
 		}, track)
-		componentElements.Corner(onTrack, 20)
-		componentElements.Gradient(onTrack, COLORS.ToggleOn, Color3.fromRGB(48, 112, 199))
+		componentElements.Corner(onTrack, 26)
+		componentElements.Gradient(onTrack, COLORS.ToggleOn, Color3.fromRGB(38, 178, 75))
 		local knob = componentElements.Make("Frame", {
 			AnchorPoint = Vector2.new(0, 0.5),
 			BackgroundColor3 = Color3.fromRGB(250, 250, 252),
 			BorderSizePixel = 0,
-			Position = value and UDim2.new(1, -21, 0.5, 0) or UDim2.new(0, 3, 0.5, 0),
-			Size = UDim2.fromOffset(18, 18),
+			Position = value and UDim2.new(1, -23, 0.5, 0) or UDim2.new(0, 3, 0.5, 0),
+			Size = UDim2.fromOffset(20, 20),
 		}, track)
-		componentElements.Corner(knob, 9)
+		componentElements.Corner(knob, 10)
 		componentElements.Stroke(knob, 0.97)
 		local hitbox = componentElements.Make("TextButton", {
 			BackgroundTransparency = 1,
@@ -335,13 +335,13 @@ local Elements = (function()
 				BackgroundTransparency = value and 0 or 1,
 			})
 			componentElements.Tween(track, Theme.HoverDuration, {
-				BackgroundColor3 = value and COLORS.ToggleOn or Color3.fromRGB(69, 69, 73),
+				BackgroundColor3 = value and COLORS.ToggleOn or Color3.fromRGB(67, 68, 73),
 			})
 			componentElements.Tween(trackStroke, Theme.HoverDuration, {
-				Color = value and Color3.fromRGB(109, 179, 255) or Color3.fromRGB(91, 91, 96),
+				Color = value and Color3.fromRGB(113, 226, 141) or Color3.fromRGB(91, 91, 96),
 			})
 			componentElements.Tween(knob, Theme.HoverDuration, {
-				Position = value and UDim2.new(1, -21, 0.5, 0) or UDim2.new(0, 3, 0.5, 0),
+				Position = value and UDim2.new(1, -23, 0.5, 0) or UDim2.new(0, 3, 0.5, 0),
 			})
 			if fireCallback ~= false then
 				componentElements.SafeCallback(owner, options.Callback, value)
@@ -351,12 +351,12 @@ local Elements = (function()
 			setValue(nextValue, fireCallback)
 		end
 		hitbox.MouseEnter:Connect(function()
-			componentElements.Tween(row, Theme.HoverDuration, { BackgroundColor3 = Color3.fromRGB(43, 43, 45) })
-			componentElements.Tween(rowStroke, Theme.HoverDuration, { Transparency = 0.89 })
+			componentElements.Tween(row, Theme.HoverDuration, { BackgroundColor3 = Color3.fromRGB(45, 46, 51) })
+			componentElements.Tween(rowStroke, Theme.HoverDuration, { Transparency = 0.84 })
 		end)
 		hitbox.MouseLeave:Connect(function()
-			componentElements.Tween(row, Theme.HoverDuration, { BackgroundColor3 = Color3.fromRGB(35, 35, 38) })
-			componentElements.Tween(rowStroke, Theme.HoverDuration, { Transparency = 0.97 })
+			componentElements.Tween(row, Theme.HoverDuration, { BackgroundColor3 = Color3.fromRGB(38, 39, 43) })
+			componentElements.Tween(rowStroke, Theme.HoverDuration, { Transparency = 0.93 })
 		end)
 		hitbox.SelectionGained:Connect(function()
 			componentElements.Tween(rowStroke, Theme.HoverDuration, {
@@ -367,7 +367,7 @@ local Elements = (function()
 		hitbox.SelectionLost:Connect(function()
 			componentElements.Tween(rowStroke, Theme.HoverDuration, {
 				Color = Theme.Stroke.Color,
-				Transparency = 0.97,
+				Transparency = 0.93,
 			})
 		end)
 		hitbox.MouseButton1Click:Connect(function()
@@ -383,13 +383,13 @@ local Elements = (function()
 		assert(maximum > minimum and step > 0, "Slider requires Max > Min and Step > 0")
 		local value = math.clamp(options.Default or minimum, minimum, maximum)
 		local row = componentElements.Make("Frame", {
-			BackgroundColor3 = COLORS.Interactive,
+			BackgroundColor3 = Color3.fromRGB(38, 39, 43),
 			BorderSizePixel = 0,
 			Size = UDim2.new(1, 0, 0, 94),
 		}, parent)
-		componentElements.Corner(row, 7)
-		local rowStroke = componentElements.Stroke(row, 0.97)
-		componentElements.Gradient(row, Color3.fromRGB(35, 35, 38), Color3.fromRGB(31, 31, 34))
+		componentElements.Corner(row, 12)
+		local rowStroke = componentElements.Stroke(row, 0.93)
+		componentElements.Gradient(row, Color3.fromRGB(38, 39, 43), Color3.fromRGB(34, 35, 39))
 		local name = componentElements.TextLabel(row, options.Name, 14, COLORS.Text, Enum.Font.GothamMedium)
 		name.Position = UDim2.fromOffset(29, 7)
 		name.Size = UDim2.new(1, -139, 0, 24)
@@ -405,7 +405,7 @@ local Elements = (function()
 			TextSize = 13,
 			TextXAlignment = Enum.TextXAlignment.Center,
 		}, row)
-		componentElements.Corner(valueBox, 6)
+		componentElements.Corner(valueBox, 8)
 		local valueStroke = componentElements.Stroke(valueBox, 0.88)
 		local bar = componentElements.Make("Frame", {
 			BackgroundColor3 = Color3.fromRGB(24, 24, 27),
@@ -923,7 +923,7 @@ function HavocLib.new(options)
 	table.insert(window._connections, cameraConnection)
 	connectViewport()
 	root.ClipsDescendants = true
-	corner(root, 14)
+	corner(root, 20)
 	local rootStroke = stroke(root, 0)
 	rootStroke.Color = Color3.fromRGB(102, 112, 132)
 	rootStroke.Transparency = 1
@@ -934,15 +934,15 @@ function HavocLib.new(options)
 	window._open = true
 
 	local header = make("Frame", {
-		BackgroundColor3 = Color3.fromRGB(22, 22, 23),
+		BackgroundColor3 = Color3.fromRGB(23, 24, 27),
 		ClipsDescendants = true,
 		Position = UDim2.fromScale(0, 0),
 		Size = UDim2.new(1, 0, 0, 52),
 	}, root)
 	window.Header = header
-	corner(header, 14)
+	corner(header, 20)
 	padding(header, 9, 0)
-	Elements.Gradient(header, Color3.fromRGB(22, 22, 23), Color3.fromRGB(17, 17, 18))
+	Elements.Gradient(header, Color3.fromRGB(23, 24, 27), Color3.fromRGB(17, 18, 20))
 	make("Frame", {
 		AnchorPoint = Vector2.new(0, 1),
 		BackgroundColor3 = Color3.fromRGB(255, 255, 255),
@@ -1075,7 +1075,7 @@ function HavocLib.new(options)
 		local actionStroke = actionButton:FindFirstChildOfClass("UIStroke")
 		if actionStroke then actionStroke.Transparency = 1 end
 		local actionCorner = actionButton:FindFirstChildOfClass("UICorner")
-		if actionCorner then actionCorner.CornerRadius = UDim.new(0, 9) end
+		if actionCorner then actionCorner.CornerRadius = UDim.new(0, 11) end
 		actionButton.MouseEnter:Connect(function()
 			tween(actionButton, Theme.HoverDuration, {
 				BackgroundColor3 = actionButton == closeButton
@@ -1392,7 +1392,7 @@ function HavocLib.new(options)
 	tween(rootScale, Theme.Animation.Open.Time, { Scale = 1 }, Enum.EasingStyle.Quint)
 	root.BackgroundTransparency = 1
 	tween(root, Theme.Animation.Fade.Time, { BackgroundTransparency = 0 })
-	tween(rootStroke, Theme.Animation.Fade.Time, { Transparency = 0 })
+	tween(rootStroke, Theme.Animation.Fade.Time, { Transparency = 0.68 })
 	return window
 end
 
@@ -1438,7 +1438,7 @@ function Window:Tab(options)
 	tabButton.MouseButton1Click:Connect(releaseTabPress)
 	corner(tabButton)
 	local tabCorner = tabButton:FindFirstChildOfClass("UICorner")
-	if tabCorner then tabCorner.CornerRadius = UDim.new(0, 9) end
+	if tabCorner then tabCorner.CornerRadius = UDim.new(0, 12) end
 	local tabStroke = stroke(tabButton)
 	tabStroke.Transparency = 1
 	tabButton.SelectionGained:Connect(function()
@@ -1564,7 +1564,7 @@ function Window:SelectTab(tab)
 			item._emptyState.Visible = active and #item._cards == 0
 		end
 		tween(item._button, Theme.HoverDuration, {
-			BackgroundColor3 = active and Color3.fromRGB(36, 51, 72) or Color3.fromRGB(32, 32, 34),
+			BackgroundColor3 = active and Color3.fromRGB(32, 48, 68) or Color3.fromRGB(32, 32, 34),
 			BackgroundTransparency = active and 0 or 1,
 		})
 		local itemStroke = item._button:FindFirstChildOfClass("UIStroke")
@@ -1609,22 +1609,22 @@ function Tab:Section(options)
 	end
 	local frame = make("Frame", {
 		AutomaticSize = Enum.AutomaticSize.Y,
-		BackgroundColor3 = sectionOptions.BackgroundColor or Color3.fromRGB(31, 31, 34),
+		BackgroundColor3 = sectionOptions.BackgroundColor or Color3.fromRGB(32, 33, 37),
 		BackgroundTransparency = Theme.PanelTransparency,
 		BorderSizePixel = 0,
 		Size = UDim2.new(1, 0, 0, 0),
 	}, self._page)
-	corner(frame, 7)
-	local sectionStroke = stroke(frame, 0.9)
-	padding(frame, 18, 17)
-	local sectionColor = sectionOptions.BackgroundColor or Color3.fromRGB(31, 31, 34)
-	local sectionGradient = sectionOptions.GradientColor or Color3.fromRGB(28, 28, 31)
+	corner(frame, 16)
+	local sectionStroke = stroke(frame, 0.86)
+	padding(frame, 20, 18)
+	local sectionColor = sectionOptions.BackgroundColor or Color3.fromRGB(32, 33, 37)
+	local sectionGradient = sectionOptions.GradientColor or Color3.fromRGB(28, 29, 33)
 	Elements.Gradient(frame, sectionColor, sectionGradient)
 	frame.MouseEnter:Connect(function()
-		tween(sectionStroke, Theme.HoverDuration, { Transparency = 0.82 })
+		tween(sectionStroke, Theme.HoverDuration, { Transparency = 0.76 })
 	end)
 	frame.MouseLeave:Connect(function()
-		tween(sectionStroke, Theme.HoverDuration, { Transparency = 0.9 })
+		tween(sectionStroke, Theme.HoverDuration, { Transparency = 0.86 })
 	end)
 	local layout = make("UIListLayout", {
 		Padding = UDim.new(0, 12),
