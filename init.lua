@@ -1406,27 +1406,30 @@ function HavocLib.new(options)
 
 	local dragStart = nil
 	local startPosition = nil
-	local dragVelocity = Vector2.zero
-	local lastDragPosition = Vector2.zero
-	local lastDragTime = 0
+	local function isInside(guiObject, point)
+		if not guiObject.Visible then return false end
+		local objectPosition = guiObject.AbsolutePosition
+		local objectSize = guiObject.AbsoluteSize
+		return point.X >= objectPosition.X
+			and point.X <= objectPosition.X + objectSize.X
+			and point.Y >= objectPosition.Y
+			and point.Y <= objectPosition.Y + objectSize.Y
+	end
 	header.InputBegan:Connect(function(input)
+		if window._maximized or not window._visible then return end
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			if isInside(windowActions, input.Position) or isInside(search, input.Position) then
+				return
+			end
 			dragStart = input.Position
 			startPosition = root.Position
-			lastDragPosition = input.Position
-			lastDragTime = os.clock()
 		end
 	end)
 	local dragEndConnection = UserInputService.InputChanged:Connect(function(input)
 		if not dragStart or not startPosition then return end
 		if input.UserInputType ~= Enum.UserInputType.MouseMovement and input.UserInputType ~= Enum.UserInputType.Touch then return end
-		local delta = input.Position - dragStart
+		local delta = (input.Position - dragStart) / math.max(responsiveScale.Scale, 0.1)
 		root.Position = UDim2.new(startPosition.X.Scale, startPosition.X.Offset + delta.X, startPosition.Y.Scale, startPosition.Y.Offset + delta.Y)
-		local now = os.clock()
-		local elapsed = math.max(now - lastDragTime, 1 / 240)
-		dragVelocity = (input.Position - lastDragPosition) / elapsed
-		lastDragPosition = input.Position
-		lastDragTime = now
 	end)
 	local dragStopConnection = UserInputService.InputEnded:Connect(function(input)
 		if dragStart and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
@@ -1452,12 +1455,6 @@ function HavocLib.new(options)
 			statusText.Text = string.format("fps %d  |  ping %s ms  |  runtime %ds", fps, ping, math.floor(os.clock() - self._startedAt))
 			frameCounter = 0
 			elapsedFrame = 0
-		end
-		if not dragStart and dragVelocity.Magnitude > 8 then
-			local position = root.Position
-			local dtClamped = math.min(dt, 1 / 30)
-			root.Position = UDim2.new(position.X.Scale, position.X.Offset + dragVelocity.X * dtClamped, position.Y.Scale, position.Y.Offset + dragVelocity.Y * dtClamped)
-			dragVelocity = dragVelocity * math.exp(-8 * dtClamped)
 		end
 	end)
 	table.insert(window._connections, statusConnection)
