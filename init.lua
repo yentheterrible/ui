@@ -883,11 +883,11 @@ function HavocLib.new(options)
 	window.Backdrop = backdrop
 
 	local minimumWindowSize = Vector2.new(540, 420)
-	local maximumWindowSize = Vector2.new(1100, 820)
+	local maximumWindowSize = Vector2.new(920, 700)
 	local initialViewport = Workspace.CurrentCamera and Workspace.CurrentCamera.ViewportSize or Vector2.new(1280, 720)
 	local defaultWindowSize = Vector2.new(
-		math.clamp(initialViewport.X * 0.68, minimumWindowSize.X, maximumWindowSize.X),
-		math.clamp(initialViewport.Y * 0.76, minimumWindowSize.Y, maximumWindowSize.Y)
+		math.clamp(initialViewport.X * 0.5, minimumWindowSize.X, maximumWindowSize.X),
+		math.clamp(initialViewport.Y * 0.65, minimumWindowSize.Y, maximumWindowSize.Y)
 	)
 	local root = make("Frame", {
 		AnchorPoint = Vector2.new(0.5, 0.5),
