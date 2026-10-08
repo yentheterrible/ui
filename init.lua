@@ -187,7 +187,7 @@ local Elements = (function()
 		}, parent)
 	end
 
-	function componentElements.Button(parent, text, size, color)
+	function componentElements.Button(parent, text, size, color, manualFeedback)
 		local element = componentElements.Make("TextButton", {
 			AutoButtonColor = false,
 			BackgroundColor3 = color or COLORS.Interactive,
@@ -201,19 +201,21 @@ local Elements = (function()
 		}, parent)
 		componentElements.Corner(element, 11)
 		local outline = componentElements.Stroke(element)
-		element.SelectionGained:Connect(function()
-			componentElements.Tween(outline, Theme.HoverDuration, {
-				Color = COLORS.Primary,
-				Transparency = 0.15,
-			})
-		end)
-		element.SelectionLost:Connect(function()
-			componentElements.Tween(outline, Theme.HoverDuration, {
-				Color = Theme.Stroke.Color,
-				Transparency = Theme.Stroke.Transparency,
-			})
-		end)
-		componentElements.AddPressFeedback(element)
+		if not manualFeedback then
+			element.SelectionGained:Connect(function()
+				componentElements.Tween(outline, Theme.HoverDuration, {
+					Color = COLORS.Primary,
+					Transparency = 0.15,
+				})
+			end)
+			element.SelectionLost:Connect(function()
+				componentElements.Tween(outline, Theme.HoverDuration, {
+					Color = Theme.Stroke.Color,
+					Transparency = Theme.Stroke.Transparency,
+				})
+			end)
+			componentElements.AddPressFeedback(element)
+		end
 		return element
 	end
 
@@ -899,7 +901,7 @@ function HavocLib.new(options)
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		BackgroundColor3 = COLORS.Background,
 		BorderSizePixel = 0,
-		Position = config.Position or UDim2.fromScale(0.56, 0.5),
+		Position = config.Position or UDim2.fromScale(0.5, 0.5),
 		Size = config.Size or UDim2.fromOffset(defaultWindowSize.X, defaultWindowSize.Y),
 	}, screen)
 	window.Root = root
@@ -943,10 +945,35 @@ function HavocLib.new(options)
 	connectViewport()
 	root.ClipsDescendants = true
 	corner(root, 26)
-	local rootStroke = stroke(root, 0.72)
-	rootStroke.Color = Color3.fromRGB(157, 180, 255)
-	rootStroke.Transparency = 0.76
+	local outline = make("Frame", {
+		Active = false,
+		AnchorPoint = root.AnchorPoint,
+		BackgroundTransparency = 1,
+		BorderSizePixel = 0,
+		Position = root.Position,
+		Selectable = false,
+		Size = root.Size,
+		ZIndex = 20,
+	}, screen)
+	corner(outline, 26)
+	local outlineScale = make("UIScale", { Scale = responsiveScale.Scale }, outline)
+	local rootStroke = stroke(outline)
+	rootStroke.Color = Color3.fromRGB(143, 149, 163)
+	rootStroke.Thickness = 1.2
+	rootStroke.Transparency = 0.48
+	local function syncOutline()
+		outline.AnchorPoint = root.AnchorPoint
+		outline.Position = root.Position
+		outline.Size = root.Size
+	end
+	root:GetPropertyChangedSignal("AnchorPoint"):Connect(syncOutline)
+	root:GetPropertyChangedSignal("Position"):Connect(syncOutline)
+	root:GetPropertyChangedSignal("Size"):Connect(syncOutline)
+	responsiveScale:GetPropertyChangedSignal("Scale"):Connect(function()
+		outlineScale.Scale = responsiveScale.Scale
+	end)
 	window._stroke = rootStroke
+	window._outline = outline
 	Elements.Gradient(root, COLORS.Background, Color3.fromRGB(12, 14, 19), 145)
 	local rootGlow = make("Frame", {
 		AnchorPoint = Vector2.new(0.5, 0),
@@ -980,26 +1007,17 @@ function HavocLib.new(options)
 		Size = UDim2.new(1, 0, 0, 60),
 	}, root)
 	window.Header = header
-	corner(header, 26)
+	-- Let the rounded root clip the header so its lower edge stays straight.
 	padding(header, 12, 0)
-	Elements.Gradient(header, Color3.fromRGB(29, 31, 38), Color3.fromRGB(18, 20, 27), 90)
-	local headerShine = make("Frame", {
-		BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-		BackgroundTransparency = 0.92,
-		BorderSizePixel = 0,
-		Position = UDim2.new(0, 0, 0, 0),
-		Size = UDim2.new(1, 0, 0, 1),
-	}, header)
-	corner(headerShine, 26)
+	header.BackgroundColor3 = Color3.fromRGB(19, 20, 23)
 	local headerSeparator = make("Frame", {
 		AnchorPoint = Vector2.new(0, 1),
 		BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-		BackgroundTransparency = 0.96,
+		BackgroundTransparency = 0.91,
 		BorderSizePixel = 0,
 		Position = UDim2.new(0, 0, 1, 0),
 		Size = UDim2.new(1, 0, 0, 1),
 	}, header)
-	corner(headerSeparator, 26)
 	if config.Logo ~= nil then
 		local logoAsset
 		if type(config.Logo) == "number" and config.Logo > 0 and config.Logo % 1 == 0 then
@@ -1068,15 +1086,11 @@ function HavocLib.new(options)
 	statusLabel.TextColor3 = Color3.fromRGB(185, 255, 219)
 	local version = textLabel(header, config.Version or "", 10, COLORS.Muted, Enum.Font.GothamMedium)
 	version.AnchorPoint = Vector2.new(0, 0.5)
-	version.Position = UDim2.new(0, 290, 0.5, 0)
-	version.Size = UDim2.fromOffset(64, 24)
+	version.Position = UDim2.new(0, 207, 0.5, 10)
+	version.Size = UDim2.fromOffset(52, 16)
 	version.Visible = config.Version ~= nil
-	version.BackgroundColor3 = Color3.fromRGB(24, 27, 35)
-	version.TextColor3 = Color3.fromRGB(232, 232, 235)
-	corner(version, 12)
-	stroke(version, 0.78)
-	Elements.Gradient(version, Color3.fromRGB(33, 37, 45), Color3.fromRGB(22, 24, 31), 90)
-	version.TextXAlignment = Enum.TextXAlignment.Center
+	version.TextColor3 = COLORS.Muted
+	version.TextXAlignment = Enum.TextXAlignment.Left
 	version.Font = Enum.Font.GothamMedium
 
 	local search = make("TextBox", {
@@ -1124,10 +1138,10 @@ function HavocLib.new(options)
 		Padding = UDim.new(0, 4),
 		SortOrder = Enum.SortOrder.LayoutOrder,
 	}, windowActions)
-	local minimizeButton = button(windowActions, "−", UDim2.fromOffset(32, 34), COLORS.Interactive)
+	local minimizeButton = button(windowActions, "−", UDim2.fromOffset(32, 34), COLORS.Interactive, true)
 	minimizeButton.TextSize = 18
 	minimizeButton.LayoutOrder = 1
-	local maximizeButton = button(windowActions, "□", UDim2.fromOffset(32, 34), COLORS.Interactive)
+	local maximizeButton = button(windowActions, "□", UDim2.fromOffset(32, 34), COLORS.Interactive, true)
 	maximizeButton.Text = ""
 	maximizeButton.LayoutOrder = 2
 	local maximizeGlyph = make("Frame", {
@@ -1138,7 +1152,7 @@ function HavocLib.new(options)
 	}, maximizeButton)
 	corner(maximizeGlyph, 2)
 	stroke(maximizeGlyph, 0.22)
-	local closeButton = button(windowActions, "×", UDim2.fromOffset(32, 34), COLORS.Interactive)
+	local closeButton = button(windowActions, "×", UDim2.fromOffset(32, 34), COLORS.Interactive, true)
 	closeButton.TextSize = 18
 	closeButton.LayoutOrder = 3
 	for _, actionButton in ipairs({ minimizeButton, maximizeButton, closeButton }) do
@@ -1148,23 +1162,38 @@ function HavocLib.new(options)
 		if actionStroke then actionStroke.Transparency = 1 end
 		local actionCorner = actionButton:FindFirstChildOfClass("UICorner")
 		if actionCorner then actionCorner.CornerRadius = UDim.new(0, 11) end
-		actionButton.MouseEnter:Connect(function()
+		local hovered = false
+		local selected = false
+		local function updateActionState()
+			local highlighted = hovered or selected
+			local isClose = actionButton == closeButton
 			tween(actionButton, Theme.HoverDuration, {
-				BackgroundColor3 = actionButton == closeButton
-					and Color3.fromRGB(104, 43, 47)
-						or Color3.fromRGB(48, 48, 51),
-				BackgroundTransparency = 0,
-				TextColor3 = COLORS.Text,
+				BackgroundColor3 = isClose and Color3.fromRGB(104, 43, 47) or Color3.fromRGB(48, 48, 51),
+				BackgroundTransparency = hovered and 0 or 1,
+				TextColor3 = highlighted and COLORS.Text or Color3.fromRGB(228, 228, 231),
 			})
 			if actionStroke then
-				tween(actionStroke, Theme.HoverDuration, { Transparency = 0.93 })
+				tween(actionStroke, Theme.HoverDuration, {
+					Color = selected and COLORS.Primary or Theme.Stroke.Color,
+					Transparency = selected and 0.25 or 1,
+				})
 			end
+		end
+		actionButton.MouseEnter:Connect(function()
+			hovered = true
+			updateActionState()
 		end)
 		actionButton.MouseLeave:Connect(function()
-			tween(actionButton, Theme.HoverDuration, { BackgroundTransparency = 1 })
-			if actionStroke then
-				tween(actionStroke, Theme.HoverDuration, { Transparency = 1 })
-			end
+			hovered = false
+			updateActionState()
+		end)
+		actionButton.SelectionGained:Connect(function()
+			selected = true
+			updateActionState()
+		end)
+		actionButton.SelectionLost:Connect(function()
+			selected = false
+			updateActionState()
 		end)
 	end
 	window._expandedSize = root.Size
@@ -1254,7 +1283,7 @@ function HavocLib.new(options)
 		Selectable = true,
 		Size = UDim2.fromOffset(34, 34),
 		Text = "",
-		ZIndex = 10,
+		ZIndex = 30,
 	}, root)
 	corner(resizeGrip, 17)
 	local resizeStroke = stroke(resizeGrip, 1)
@@ -1484,7 +1513,7 @@ function HavocLib.new(options)
 	tween(rootScale, Theme.Animation.Open.Time, { Scale = 1 }, Enum.EasingStyle.Quint)
 	root.BackgroundTransparency = 1
 	tween(root, Theme.Animation.Fade.Time, { BackgroundTransparency = 0 })
-	tween(rootStroke, Theme.Animation.Fade.Time, { Transparency = 0.68 })
+	tween(rootStroke, Theme.Animation.Fade.Time, { Transparency = 0.48 })
 	return window
 end
 
@@ -2392,7 +2421,8 @@ function Window:SetVisible(visible)
 		self.Root.BackgroundTransparency = 1
 		tween(self._scale, Theme.Animation.Open.Time, { Scale = 1 }, Enum.EasingStyle.Quint)
 		tween(self.Root, Theme.Animation.Fade.Time, { BackgroundTransparency = 0 })
-		tween(self._stroke, Theme.Animation.Fade.Time, { Transparency = 0.68 })
+		self._outline.Visible = true
+		tween(self._stroke, Theme.Animation.Fade.Time, { Transparency = 0.48 })
 	else
 		self._visible = false
 		tween(self._scale, Theme.HoverDuration, { Scale = Theme.OpenScale })
@@ -2401,6 +2431,7 @@ function Window:SetVisible(visible)
 		fade.Completed:Once(function()
 			if not self._visible then
 				self.Root.Visible = false
+				self._outline.Visible = false
 			end
 		end)
 	end
