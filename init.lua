@@ -50,20 +50,20 @@ local Elements = (function()
 	local COLORS = Theme.Colors
 	local componentElements = {}
 
-	function componentElements.Make(className: string, properties: {[string]: any}, parent: Instance?): Instance
+	function componentElements.Make(className, properties, parent)
 		local object = Instance.new(className)
 		if object:IsA("GuiObject") then
 			object.BorderSizePixel = 0
 		end
 		for key, value in pairs(properties) do
-			(object :: any)[key] = value
+			object[key] = value
 		end
 		object.Parent = parent
 		return object
 	end
 
-	function componentElements.GradientTint(baseColor: Color3, targetColor: Color3): Color3
-		local function channel(target: number, base: number): number
+	function componentElements.GradientTint(baseColor, targetColor)
+		local function channel(target, base)
 			if base == 0 then
 				return 1
 			end
@@ -76,7 +76,7 @@ local Elements = (function()
 		)
 	end
 
-	function componentElements.Gradient(parent: Instance, baseColor: Color3, targetColor: Color3, rotation: number?)
+	function componentElements.Gradient(parent, baseColor, targetColor, rotation)
 		return componentElements.Make("UIGradient", {
 			Color = ColorSequence.new(
 				Color3.new(1, 1, 1),
@@ -86,13 +86,13 @@ local Elements = (function()
 		}, parent)
 	end
 
-	function componentElements.Corner(parent: Instance, radius: number?)
+	function componentElements.Corner(parent, radius)
 		return componentElements.Make("UICorner", {
 			CornerRadius = UDim.new(0, radius or Theme.CornerRadius.Offset),
 		}, parent)
 	end
 
-	function componentElements.Stroke(parent: Instance, transparency: number?)
+	function componentElements.Stroke(parent, transparency)
 		local properties = table.clone(Theme.Stroke)
 		if transparency ~= nil then
 			properties.Transparency = transparency
@@ -100,9 +100,14 @@ local Elements = (function()
 		return componentElements.Make("UIStroke", properties, parent)
 	end
 
-	function componentElements.Padding(parent: Instance, amount: number?, verticalAmount: number?)
+	function componentElements.Padding(parent, amount, verticalAmount)
 		local inset = amount or Theme.Padding
-		local verticalInset = if verticalAmount == nil then inset else verticalAmount
+		local verticalInset
+		if verticalAmount == nil then
+			verticalInset = inset
+		else
+			verticalInset = verticalAmount
+		end
 		return componentElements.Make("UIPadding", {
 			PaddingLeft = UDim.new(0, inset),
 			PaddingRight = UDim.new(0, inset),
@@ -111,7 +116,7 @@ local Elements = (function()
 		}, parent)
 	end
 
-	function componentElements.Tween(object: Instance, duration: number, properties: {[string]: any}, style: Enum.EasingStyle?)
+	function componentElements.Tween(object, duration, properties, style)
 		local animation = TweenService:Create(
 			object,
 			TweenInfo.new(duration, style or Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
@@ -121,11 +126,16 @@ local Elements = (function()
 		return animation
 	end
 
-	function componentElements.AddPressFeedback(button: GuiButton, scaleTarget: GuiObject?)
+	function componentElements.AddPressFeedback(button, scaleTarget)
 		local scale = componentElements.Make("UIScale", { Scale = 1 }, scaleTarget or button)
 		local baseColor = button.BackgroundColor3
 		local buttonStroke = button:FindFirstChildOfClass("UIStroke")
-		local baseStrokeColor = if buttonStroke then buttonStroke.Color else COLORS.Border
+		local baseStrokeColor
+		if buttonStroke then
+			baseStrokeColor = buttonStroke.Color
+		else
+			baseStrokeColor = COLORS.Border
+		end
 		button.MouseEnter:Connect(function()
 			componentElements.Tween(button, Theme.HoverDuration, {
 				BackgroundColor3 = baseColor:Lerp(Color3.new(1, 1, 1), 0.08),
@@ -156,7 +166,7 @@ local Elements = (function()
 		button.MouseButton1Click:Connect(release)
 	end
 
-	function componentElements.TextLabel(parent: Instance, text: string, size: number, color: Color3?, font: Enum.Font?)
+	function componentElements.TextLabel(parent, text, size, color, font)
 		return componentElements.Make("TextLabel", {
 			BackgroundTransparency = 1,
 			Font = font or Enum.Font.Gotham,
@@ -168,7 +178,7 @@ local Elements = (function()
 		}, parent)
 	end
 
-	function componentElements.Button(parent: Instance, text: string, size: UDim2, color: Color3?)
+	function componentElements.Button(parent, text, size, color)
 		local element = componentElements.Make("TextButton", {
 			AutoButtonColor = false,
 			BackgroundColor3 = color or COLORS.Interactive,
@@ -178,14 +188,14 @@ local Elements = (function()
 			Text = text,
 			TextColor3 = COLORS.Text,
 			TextSize = 11,
-		}, parent) :: TextButton
+		}, parent)
 		componentElements.Corner(element, 9)
 		componentElements.Stroke(element)
 		componentElements.AddPressFeedback(element)
 		return element
 	end
 
-	function componentElements.SetCanvasHeight(scroller: ScrollingFrame, layout: UIListLayout, bottomPadding: number?)
+	function componentElements.SetCanvasHeight(scroller, layout, bottomPadding)
 		local extra = bottomPadding or 12
 		local function update()
 			scroller.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + extra)
@@ -194,7 +204,7 @@ local Elements = (function()
 		update()
 	end
 
-	function componentElements.SafeCallback(owner: any, callback: any, ...)
+	function componentElements.SafeCallback(owner, callback, ...)
 		if type(callback) ~= "function" then
 			return
 		end
@@ -211,7 +221,7 @@ local Elements = (function()
 		end
 	end
 
-	function componentElements.ActionButton(parent: Instance, options: {[string]: any}, owner: any)
+	function componentElements.ActionButton(parent, options, owner)
 		local backgroundColor = options.Color or COLORS.Accent
 		local luminance = backgroundColor.R * 0.2126 + backgroundColor.G * 0.7152 + backgroundColor.B * 0.0722
 		local textColor = options.TextColor or COLORS.Text
@@ -224,7 +234,12 @@ local Elements = (function()
 		element.TextColor3 = textColor
 		element.Font = Enum.Font.GothamBold
 		element.TextSize = 10
-		local gradientShade = if luminance > 0.55 then 0.08 else 0.23
+		local gradientShade
+		if luminance > 0.55 then
+			gradientShade = 0.08
+		else
+			gradientShade = 0.23
+		end
 		componentElements.Gradient(element, backgroundColor, backgroundColor:Lerp(Color3.new(0, 0, 0), gradientShade))
 		element.TextXAlignment = Enum.TextXAlignment.Center
 		element.MouseButton1Click:Connect(function()
@@ -233,7 +248,7 @@ local Elements = (function()
 		return element
 	end
 
-	function componentElements.Paragraph(parent: Instance, options: {[string]: any})
+	function componentElements.Paragraph(parent, options)
 		local content = componentElements.Make("TextLabel", {
 			AutomaticSize = Enum.AutomaticSize.Y,
 			BackgroundTransparency = 1,
@@ -250,7 +265,7 @@ local Elements = (function()
 		return content
 	end
 
-	function componentElements.Toggle(parent: Instance, options: {[string]: any}, owner: any)
+	function componentElements.Toggle(parent, options, owner)
 		local value = options.Default == true
 		local row = componentElements.Make("Frame", {
 			BackgroundColor3 = COLORS.Interactive,
@@ -295,11 +310,11 @@ local Elements = (function()
 			BackgroundTransparency = 1,
 			Size = UDim2.fromScale(1, 1),
 			Text = "",
-		}, row) :: TextButton
+		}, row)
 		componentElements.Corner(hitbox)
 		componentElements.AddPressFeedback(hitbox, row)
 		local toggle = { Value = value, Frame = row }
-		local function setValue(nextValue: boolean, fireCallback: boolean?)
+		local function setValue(nextValue, fireCallback)
 			value = nextValue == true
 			toggle.Value = value
 			componentElements.Tween(onTrack, Theme.HoverDuration, {
@@ -315,7 +330,7 @@ local Elements = (function()
 				componentElements.SafeCallback(owner, options.Callback, value)
 			end
 		end
-		toggle.Set = function(_, nextValue: boolean, fireCallback: boolean?)
+		toggle.Set = function(_, nextValue, fireCallback)
 			setValue(nextValue, fireCallback)
 		end
 		hitbox.MouseEnter:Connect(function()
@@ -332,7 +347,7 @@ local Elements = (function()
 		return toggle
 	end
 
-	function componentElements.Slider(parent: Instance, options: {[string]: any}, owner: any, connections: {RBXScriptConnection})
+	function componentElements.Slider(parent, options, owner, connections)
 		local minimum = options.Min or 0
 		local maximum = options.Max or 100
 		local step = options.Step or 1
@@ -358,7 +373,7 @@ local Elements = (function()
 			Text = tostring(value),
 			TextColor3 = COLORS.Text,
 			TextSize = 11,
-		}, row) :: TextBox
+		}, row)
 		componentElements.Corner(valueBox, 20)
 		componentElements.Stroke(valueBox)
 		local bar = componentElements.Make("Frame", {
@@ -391,18 +406,18 @@ local Elements = (function()
 			Size = UDim2.new(1, 0, 0, 28),
 			Position = UDim2.new(0, 0, 0, 29),
 			Text = "",
-		}, row) :: TextButton
+		}, row)
 		componentElements.Corner(sliderButton)
 		componentElements.AddPressFeedback(sliderButton, row)
 		local slider = { Value = value, Frame = row }
-		local function formatValue(number: number)
+		local function formatValue(number)
 			local decimals = options.Decimals
 			if decimals == nil then
 				decimals = #((tostring(step):split(".")[2]) or "")
 			end
 			return string.format("%." .. tostring(math.clamp(decimals, 0, 6)) .. "f", number)
 		end
-		local function setValue(nextValue: number, fireCallback: boolean?)
+		local function setValue(nextValue, fireCallback)
 			if nextValue ~= nextValue or math.abs(nextValue) == math.huge then
 				return
 			end
@@ -417,11 +432,11 @@ local Elements = (function()
 				componentElements.SafeCallback(owner, options.Callback, value)
 			end
 		end
-		slider.Set = function(_, nextValue: number, fireCallback: boolean?)
+		slider.Set = function(_, nextValue, fireCallback)
 			setValue(nextValue, fireCallback)
 		end
 		local dragging = false
-		local function update(input: InputObject)
+		local function update(input)
 			local width = math.max(bar.AbsoluteSize.X, 1)
 			setValue(minimum + math.clamp((input.Position.X - bar.AbsolutePosition.X) / width, 0, 1) * (maximum - minimum))
 		end
@@ -453,7 +468,7 @@ local Elements = (function()
 		return slider
 	end
 
-	function componentElements.IconImage(parent: Instance, icon: any, size: number)
+	function componentElements.IconImage(parent, icon, size)
 		if type(icon) == "number" or (type(icon) == "string" and icon:match("^%d+$")) then
 			return componentElements.Make("ImageLabel", {
 				BackgroundTransparency = 1,
@@ -473,7 +488,12 @@ local Elements = (function()
 				Size = UDim2.fromOffset(size, size),
 			}, parent)
 		end
-		local normalizedIcon = if type(icon) == "string" then string.lower(icon) else ""
+		local normalizedIcon
+		if type(icon) == "string" then
+			normalizedIcon = string.lower(icon)
+		else
+			normalizedIcon = ""
+		end
 		if normalizedIcon == "home" or normalizedIcon == "main" then
 			local homeIcon = componentElements.Make("Frame", {
 				BackgroundTransparency = 1,
@@ -486,7 +506,7 @@ local Elements = (function()
 				Position = UDim2.fromScale(0.5, 0.5),
 				Size = UDim2.fromOffset(iconSize, iconSize),
 			}, homeIcon)
-			local function line(x: number, y: number, width: number, height: number, rotation: number)
+			local function line(x, y, width, height, rotation)
 				local segment = componentElements.Make("Frame", {
 					AnchorPoint = Vector2.new(0.5, 0.5),
 					BackgroundColor3 = COLORS.Icon,
@@ -524,7 +544,7 @@ local Elements = (function()
 				Thickness = 1.2,
 				Transparency = 0,
 			}, ring)
-			local function tick(x: number, y: number, width: number, height: number)
+			local function tick(x, y, width, height)
 				local segment = componentElements.Make("Frame", {
 					BackgroundColor3 = COLORS.Icon,
 					BorderSizePixel = 0,
@@ -547,7 +567,7 @@ local Elements = (function()
 				BackgroundTransparency = 1,
 				Size = UDim2.fromOffset(size, size),
 			}, parent)
-			local function part(width: number, height: number, x: number, y: number, rotation: number?)
+			local function part(width, height, x, y, rotation)
 				local segment = componentElements.Make("Frame", {
 					AnchorPoint = Vector2.new(0.5, 0.5),
 					BackgroundColor3 = COLORS.Icon,
@@ -706,7 +726,7 @@ local setCanvasHeight = Elements.SetCanvasHeight
 local safeCallback = Elements.SafeCallback
 local iconImage = Elements.IconImage
 
-local function encodeConfigValue(value: any): any
+local function encodeConfigValue(value)
 	local valueType = typeof(value)
 	if valueType == "Color3" then
 		return {
@@ -726,7 +746,7 @@ local function encodeConfigValue(value: any): any
 	error("Unsupported configuration value type: " .. valueType, 2)
 end
 
-local function decodeConfigValue(value: any, expectedType: string): any
+local function decodeConfigValue(value, expectedType)
 	if expectedType == "Color3" then
 		assert(type(value) == "table" and value.__havocType == "Color3", "Invalid saved Color3 value")
 		assert(type(value.R) == "number" and type(value.G) == "number" and type(value.B) == "number", "Invalid saved Color3 channels")
@@ -742,7 +762,7 @@ local function decodeConfigValue(value: any, expectedType: string): any
 	return value
 end
 
-function HavocLib.new(options: {[string]: any}?)
+function HavocLib.new(options)
 	local config = options or {}
 	local player = Players.LocalPlayer
 	assert(player, "Havoc Lib must be initialized on the client")
@@ -767,7 +787,7 @@ function HavocLib.new(options: {[string]: any}?)
 		IgnoreGuiInset = true,
 		ResetOnSpawn = false,
 		ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
-	}, playerGui) :: ScreenGui
+	}, playerGui)
 	self.ScreenGui = screen
 
 	local backdrop = make("Frame", {
@@ -776,7 +796,7 @@ function HavocLib.new(options: {[string]: any}?)
 		BackgroundTransparency = 1,
 		BorderSizePixel = 0,
 		Size = UDim2.fromScale(1, 1),
-	}, screen) :: Frame
+	}, screen)
 
 	local window = setmetatable({
 		_library = self,
@@ -793,12 +813,12 @@ function HavocLib.new(options: {[string]: any}?)
 		BorderSizePixel = 0,
 		Position = config.Position or UDim2.fromScale(0.5, 0.5),
 		Size = config.Size or UDim2.fromOffset(460, 356),
-	}, screen) :: Frame
+	}, screen)
 	window.Root = root
 	make("UISizeConstraint", {
 		MaxSize = Vector2.new(760, 600),
 	}, root)
-	local responsiveScale = make("UIScale", { Scale = 1 }, root) :: UIScale
+	local responsiveScale = make("UIScale", { Scale = 1 }, root)
 	local function updateResponsiveScale()
 		local camera = Workspace.CurrentCamera
 		if not camera then return end
@@ -806,7 +826,7 @@ function HavocLib.new(options: {[string]: any}?)
 		responsiveScale.Scale = math.max(0.1, math.min(1, (viewport.X - 20) / 460, (viewport.Y - 20) / 356))
 	end
 	updateResponsiveScale()
-	local viewportConnection: RBXScriptConnection? = nil
+	local viewportConnection = nil
 	local function connectViewport()
 		if viewportConnection then
 			viewportConnection:Disconnect()
@@ -835,7 +855,7 @@ function HavocLib.new(options: {[string]: any}?)
 	rootStroke.Transparency = 1
 	window._stroke = rootStroke
 	Elements.Gradient(root, COLORS.Background, Color3.fromRGB(12, 12, 13), 145)
-	local rootScale = make("UIScale", { Scale = Theme.OpenScale }, root) :: UIScale
+	local rootScale = make("UIScale", { Scale = Theme.OpenScale }, root)
 	window._scale = rootScale
 	window._open = true
 
@@ -858,7 +878,7 @@ function HavocLib.new(options: {[string]: any}?)
 		Size = UDim2.new(1, 0, 0, 1),
 	}, header)
 	if config.Logo ~= nil then
-		local logoAsset: string?
+		local logoAsset
 		if type(config.Logo) == "number" and config.Logo > 0 and config.Logo % 1 == 0 then
 			logoAsset = "rbxassetid://" .. tostring(config.Logo)
 		elseif type(config.Logo) == "string" then
@@ -873,7 +893,7 @@ function HavocLib.new(options: {[string]: any}?)
 			Image = logoAsset,
 			ScaleType = Enum.ScaleType.Crop,
 			Size = UDim2.fromOffset(21, 21),
-		}, header) :: ImageLabel
+		}, header)
 		logoImage.AnchorPoint = Vector2.new(0, 0.5)
 		logoImage.Position = UDim2.new(0, 0, 0.5, 0)
 		corner(logoImage)
@@ -925,7 +945,7 @@ function HavocLib.new(options: {[string]: any}?)
 		TextColor3 = COLORS.Text,
 		TextSize = 12,
 		TextXAlignment = Enum.TextXAlignment.Left,
-	}, header) :: TextBox
+	}, header)
 	search.Visible = config.SearchEnabled == true
 	search.BackgroundTransparency = 0.08
 	corner(search)
@@ -1015,7 +1035,7 @@ function HavocLib.new(options: {[string]: any}?)
 	local tabLayout = make("UIListLayout", {
 		Padding = UDim.new(0, 1),
 		SortOrder = Enum.SortOrder.LayoutOrder,
-	}, tabList) :: UIListLayout
+	}, tabList)
 	window._tabList = tabList
 
 	local content = make("Frame", {
@@ -1083,8 +1103,8 @@ function HavocLib.new(options: {[string]: any}?)
 		end
 	end)
 
-	local dragStart: Vector2? = nil
-	local startPosition: UDim2? = nil
+	local dragStart = nil
+	local startPosition = nil
 	local dragVelocity = Vector2.zero
 	local lastDragPosition = Vector2.zero
 	local lastDragTime = 0
@@ -1119,8 +1139,8 @@ function HavocLib.new(options: {[string]: any}?)
 	local frameCounter = 0
 	local elapsedFrame = 0
 	local statusConnection = RunService.RenderStepped:Connect(function(dt)
-		frameCounter += 1
-		elapsedFrame += dt
+		frameCounter = frameCounter + 1
+		elapsedFrame = elapsedFrame + dt
 		if elapsedFrame >= 0.5 then
 			local fps = math.floor(frameCounter / elapsedFrame + 0.5)
 			local ping = "--"
@@ -1136,7 +1156,7 @@ function HavocLib.new(options: {[string]: any}?)
 			local position = root.Position
 			local dtClamped = math.min(dt, 1 / 30)
 			root.Position = UDim2.new(position.X.Scale, position.X.Offset + dragVelocity.X * dtClamped, position.Y.Scale, position.Y.Offset + dragVelocity.Y * dtClamped)
-			dragVelocity *= math.exp(-8 * dtClamped)
+			dragVelocity = dragVelocity * math.exp(-8 * dtClamped)
 		end
 	end)
 	table.insert(window._connections, statusConnection)
@@ -1195,7 +1215,7 @@ function HavocLib.new(options: {[string]: any}?)
 	return window
 end
 
-function Window:Tab(options: {[string]: any})
+function Window:Tab(options)
 	assert(type(options) == "table" and type(options.Name) == "string", "Tab requires a Name")
 	local tab = setmetatable({
 		_window = self,
@@ -1207,7 +1227,7 @@ function Window:Tab(options: {[string]: any})
 		local caption = make("Frame", {
 			BackgroundTransparency = 1,
 			Size = UDim2.new(1, 0, 0, 25),
-		}, self._tabList) :: Frame
+		}, self._tabList)
 		local captionLabel = textLabel(caption, options.CaptionBefore, 11, Color3.fromRGB(180, 180, 184))
 		captionLabel.Position = UDim2.new(0, 8, 0, 8)
 		captionLabel.Size = UDim2.new(1, -16, 0, 13)
@@ -1220,7 +1240,7 @@ function Window:Tab(options: {[string]: any})
 		BorderSizePixel = 0,
 		Size = UDim2.new(1, 0, 0, 31),
 		Text = "",
-	}, self._tabList) :: TextButton
+	}, self._tabList)
 	tab._button = tabButton
 	tabButton.BackgroundColor3 = Color3.fromRGB(32, 32, 34)
 	tabButton.BackgroundTransparency = 1
@@ -1279,7 +1299,7 @@ function Window:Tab(options: {[string]: any})
 		ScrollBarThickness = 3,
 		Size = UDim2.fromScale(1, 1),
 		Visible = false,
-	}, self.Content) :: ScrollingFrame
+	}, self.Content)
 	tab._page = page
 	Elements.Gradient(page, Color3.fromRGB(26, 26, 27), Color3.fromRGB(24, 24, 25), 145)
 	if type(options.EmptyText) == "string" and options.EmptyText ~= "" then
@@ -1290,7 +1310,7 @@ function Window:Tab(options: {[string]: any})
 			Size = page.Size,
 			Visible = false,
 			ZIndex = page.ZIndex + 1,
-		}, self.Content) :: Frame
+		}, self.Content)
 		local emptyLabel = textLabel(emptyState, options.EmptyText, 11, Color3.fromRGB(171, 171, 176))
 		emptyLabel.ZIndex = emptyState.ZIndex + 1
 		emptyLabel.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -1303,10 +1323,10 @@ function Window:Tab(options: {[string]: any})
 	local pageLayout = make("UIListLayout", {
 		Padding = UDim.new(0, 14),
 		SortOrder = Enum.SortOrder.LayoutOrder,
-	}, page) :: UIListLayout
+	}, page)
 	setCanvasHeight(page, pageLayout, 20)
 
-	tab._matches = function(query: string)
+	tab._matches = function(query)
 		if string.find(string.lower(tab._name), query, 1, true) then return true end
 		for _, card in ipairs(tab._cards) do
 			if string.find(string.lower(card._searchText), query, 1, true) then return true end
@@ -1333,7 +1353,7 @@ function Window:Tab(options: {[string]: any})
 	return tab
 end
 
-function Window:SelectTab(tab: any)
+function Window:SelectTab(tab)
 	if self._activeTab == tab then return end
 	self._activeTab = tab
 	for _, item in ipairs(self._tabs) do
@@ -1367,7 +1387,7 @@ function Window:SelectTab(tab: any)
 	end
 end
 
-function Tab:SetBadge(value: any)
+function Tab:SetBadge(value)
 	if value == nil or value == false or value == "" or value == 0 then
 		self.Badge.Visible = false
 	else
@@ -1376,15 +1396,20 @@ function Tab:SetBadge(value: any)
 	end
 end
 
-function Tab:Section(options: {[string]: any})
-	local sectionOptions = if type(options) == "string" then { Name = options } else (options or {})
+function Tab:Section(options)
+	local sectionOptions
+	if type(options) == "string" then
+		sectionOptions = { Name = options }
+	else
+		sectionOptions = options or {}
+	end
 	local frame = make("Frame", {
 		AutomaticSize = Enum.AutomaticSize.Y,
 		BackgroundColor3 = sectionOptions.BackgroundColor or COLORS.Container,
 		BackgroundTransparency = Theme.PanelTransparency,
 		BorderSizePixel = 0,
 		Size = UDim2.new(1, 0, 0, 0),
-	}, self._page) :: Frame
+	}, self._page)
 	corner(frame)
 	local sectionStroke = stroke(frame, 0.83)
 	padding(frame, 13)
@@ -1400,7 +1425,7 @@ function Tab:Section(options: {[string]: any})
 	local layout = make("UIListLayout", {
 		Padding = UDim.new(0, 9),
 		SortOrder = Enum.SortOrder.LayoutOrder,
-	}, frame) :: UIListLayout
+	}, frame)
 	local headingRow = make("Frame", {
 		BackgroundTransparency = 1,
 		Size = UDim2.new(1, 0, 0, 22),
@@ -1447,7 +1472,7 @@ function Tab:Section(options: {[string]: any})
 		ZIndex = headingRow.ZIndex + 1,
 	}, headingRow)
 	corner(divider, 1)
-	local dividerGradient = Elements.Gradient(divider, Color3.fromRGB(82, 82, 86), Color3.fromRGB(50, 50, 53), 0) :: UIGradient
+	local dividerGradient = Elements.Gradient(divider, Color3.fromRGB(82, 82, 86), Color3.fromRGB(50, 50, 53), 0)
 	dividerGradient.Transparency = NumberSequence.new({
 		NumberSequenceKeypoint.new(0, 0),
 		NumberSequenceKeypoint.new(1, 0.72),
@@ -1470,7 +1495,7 @@ function Tab:Section(options: {[string]: any})
 	return section
 end
 
-function Section:_register(frame: Instance, searchText: string)
+function Section:_register(frame, searchText)
 	table.insert(self._tab._cards, { _frame = frame, _searchText = self._title .. " " .. searchText })
 	if self._tab._emptyState then
 		self._tab._emptyState.Visible = false
@@ -1479,7 +1504,7 @@ function Section:_register(frame: Instance, searchText: string)
 	return frame
 end
 
-function Section:_registerSetting(options: {[string]: any}, control: any)
+function Section:_registerSetting(options, control)
 	local flag = options.Flag
 	if flag == nil then
 		return
@@ -1493,14 +1518,14 @@ function Section:_registerSetting(options: {[string]: any}, control: any)
 	}
 end
 
-function Section:Button(options: {[string]: any})
+function Section:Button(options)
 	assert(type(options) == "table" and type(options.Name) == "string", "Button requires a Name")
 	local element = Elements.ActionButton(self._frame, options, self._window._library)
 	self:_register(element, options.Name)
 	return element
 end
 
-function Section:Paragraph(options: {[string]: any})
+function Section:Paragraph(options)
 	assert(type(options) == "table" and type(options.Name) == "string", "Paragraph requires a Name")
 	local paragraph = make("Frame", {
 		AutomaticSize = Enum.AutomaticSize.Y,
@@ -1528,7 +1553,7 @@ function Section:Paragraph(options: {[string]: any})
 	return paragraph
 end
 
-function Section:Buttons(options: {[string]: any})
+function Section:Buttons(options)
 	assert(type(options) == "table" and type(options.Buttons) == "table", "Buttons requires a Buttons array")
 	local items = options.Buttons
 	assert(#items > 0, "Buttons requires at least one button")
@@ -1559,7 +1584,7 @@ function Section:Buttons(options: {[string]: any})
 	return row
 end
 
-function Section:Row(options: {[string]: any})
+function Section:Row(options)
 	assert(type(options) == "table" and type(options.Items) == "table", "Row requires an Items array")
 	local items = options.Items
 	assert(#items > 0, "Row requires at least one item")
@@ -1576,7 +1601,7 @@ function Section:Row(options: {[string]: any})
 		FillDirection = Enum.FillDirection.Horizontal,
 		FillDirectionMaxCells = columns,
 		SortOrder = Enum.SortOrder.LayoutOrder,
-	}, row) :: UIGridLayout
+	}, row)
 	local function updateRowHeight()
 		row.Size = UDim2.new(1, 0, 0, grid.AbsoluteContentSize.Y)
 	end
@@ -1607,7 +1632,7 @@ function Section:Row(options: {[string]: any})
 	return row
 end
 
-function Section:Toggle(options: {[string]: any})
+function Section:Toggle(options)
 	assert(type(options) == "table" and type(options.Name) == "string", "Toggle requires a Name")
 	local toggle = Elements.Toggle(self._frame, options, self._window._library)
 	self:_register(toggle.Frame, options.Name)
@@ -1615,7 +1640,7 @@ function Section:Toggle(options: {[string]: any})
 	return toggle
 end
 
-function Section:Slider(options: {[string]: any})
+function Section:Slider(options)
 	assert(type(options) == "table" and type(options.Name) == "string", "Slider requires a Name")
 	local slider = Elements.Slider(self._frame, options, self._window._library, self._window._connections)
 	self:_register(slider.Frame, options.Name)
@@ -1623,7 +1648,7 @@ function Section:Slider(options: {[string]: any})
 	return slider
 end
 
-function Section:Dropdown(options: {[string]: any})
+function Section:Dropdown(options)
 	assert(type(options) == "table" and type(options.Name) == "string", "Dropdown requires a Name")
 	local choices = options.Options or {}
 	local selected = options.Default
@@ -1649,9 +1674,9 @@ function Section:Dropdown(options: {[string]: any})
 	corner(menu)
 	stroke(menu)
 	padding(menu, 14)
-	local menuLayout = make("UIListLayout", { Padding = UDim.new(0, 4), SortOrder = Enum.SortOrder.LayoutOrder }, menu) :: UIListLayout
+	local menuLayout = make("UIListLayout", { Padding = UDim.new(0, 4), SortOrder = Enum.SortOrder.LayoutOrder }, menu)
 	local dropdown = { Value = selected, Frame = holder }
-	local function setExpanded(state: boolean)
+	local function setExpanded(state)
 		expanded = state
 		if expanded then
 			menu.Visible = true
@@ -1677,14 +1702,14 @@ function Section:Dropdown(options: {[string]: any})
 			end)
 		end
 	end
-	local function setValue(nextValue: any, fireCallback: boolean?)
+	local function setValue(nextValue, fireCallback)
 		selected = nextValue
 		dropdown.Value = nextValue
 		head.Text = options.Name .. "   " .. tostring(nextValue)
 		setExpanded(false)
 		if fireCallback ~= false then safeCallback(self._window._library, options.Callback, nextValue) end
 	end
-	dropdown.Set = function(_, nextValue: any, fireCallback: boolean?)
+	dropdown.Set = function(_, nextValue, fireCallback)
 		setValue(nextValue, fireCallback)
 	end
 	for _, choice in ipairs(choices) do
@@ -1703,7 +1728,7 @@ function Section:Dropdown(options: {[string]: any})
 	return dropdown
 end
 
-function Section:Keybind(options: {[string]: any})
+function Section:Keybind(options)
 	assert(type(options) == "table" and type(options.Name) == "string", "Keybind requires a Name")
 	local key = options.Default or Enum.KeyCode.Unknown
 	local listening = false
@@ -1721,13 +1746,13 @@ function Section:Keybind(options: {[string]: any})
 	keyButton.AnchorPoint = Vector2.new(1, 0.5)
 	keyButton.Position = UDim2.new(1, -7, 0.5, 0)
 	local keybind = { Value = key, Frame = row }
-	local function setKey(nextKey: Enum.KeyCode, fireCallback: boolean?)
+	local function setKey(nextKey, fireCallback)
 		key = nextKey
 		keybind.Value = key
 		keyButton.Text = key.Name
 		if fireCallback ~= false then safeCallback(self._window._library, options.Changed, key) end
 	end
-	keybind.Set = function(_, nextKey: Enum.KeyCode, fireCallback: boolean?)
+	keybind.Set = function(_, nextKey, fireCallback)
 		setKey(nextKey, fireCallback)
 	end
 	keyButton.MouseButton1Click:Connect(function()
@@ -1752,7 +1777,7 @@ function Section:Keybind(options: {[string]: any})
 	return keybind
 end
 
-function Section:Input(options: {[string]: any})
+function Section:Input(options)
 	assert(type(options) == "table" and type(options.Name) == "string", "Input requires a Name")
 	local multiline = options.Multiline == true
 	local row = make("Frame", {
@@ -1781,7 +1806,7 @@ function Section:Input(options: {[string]: any})
 		TextWrapped = multiline,
 		TextXAlignment = Enum.TextXAlignment.Left,
 		TextYAlignment = multiline and Enum.TextYAlignment.Top or Enum.TextYAlignment.Center,
-	}, row) :: TextBox
+	}, row)
 	corner(field)
 	stroke(field)
 	padding(field, 8, 0)
@@ -1799,7 +1824,7 @@ function Section:Input(options: {[string]: any})
 			row.Size = UDim2.new(1, 0, 0, height + 36)
 		end
 	end)
-	input.Set = function(_, value: string, fireCallback: boolean?)
+	input.Set = function(_, value, fireCallback)
 		field.Text = value
 		if fireCallback ~= false then
 			safeCallback(self._window._library, options.Callback, value, false)
@@ -1810,7 +1835,7 @@ function Section:Input(options: {[string]: any})
 	return input
 end
 
-function Section:ColorPicker(options: {[string]: any})
+function Section:ColorPicker(options)
 	assert(type(options) == "table" and type(options.Name) == "string", "ColorPicker requires a Name")
 	local color = options.Default or COLORS.Accent
 	local hue, saturation, brightness = color:ToHSV()
@@ -1851,7 +1876,7 @@ function Section:ColorPicker(options: {[string]: any})
 		BorderSizePixel = 0,
 		Size = UDim2.new(1, -26, 1, -16),
 		Text = "",
-	}, picker) :: TextButton
+	}, picker)
 	corner(saturationCanvas)
 	stroke(saturationCanvas)
 	local whiteOverlay = make("Frame", {
@@ -1895,7 +1920,7 @@ function Section:ColorPicker(options: {[string]: any})
 		Position = UDim2.new(1, -18, 0, 0),
 		Size = UDim2.new(0, 10, 1, -16),
 		Text = "",
-	}, picker) :: TextButton
+	}, picker)
 	corner(hueBar)
 	stroke(hueBar)
 	make("UIGradient", {
@@ -1919,7 +1944,7 @@ function Section:ColorPicker(options: {[string]: any})
 	}, hueBar)
 	corner(hueMarker)
 	local colorPicker = { Value = color, Frame = holder }
-	local function setColor(nextColor: Color3, fireCallback: boolean?)
+	local function setColor(nextColor, fireCallback)
 		color = nextColor
 		hue, saturation, brightness = color:ToHSV()
 		colorPicker.Value = color
@@ -1929,19 +1954,19 @@ function Section:ColorPicker(options: {[string]: any})
 		hueMarker.Position = UDim2.new(0.5, 0, hue, 0)
 		if fireCallback ~= false then safeCallback(self._window._library, options.Callback, color) end
 	end
-	colorPicker.Set = function(_, nextColor: Color3, fireCallback: boolean?)
+	colorPicker.Set = function(_, nextColor, fireCallback)
 		setColor(nextColor, fireCallback)
 	end
 	local satDragging = false
 	local hueDragging = false
-	local function setSaturationAt(input: InputObject)
+	local function setSaturationAt(input)
 		local position = saturationCanvas.AbsolutePosition
 		local size = saturationCanvas.AbsoluteSize
 		saturation = math.clamp((input.Position.X - position.X) / math.max(size.X, 1), 0, 1)
 		brightness = 1 - math.clamp((input.Position.Y - position.Y) / math.max(size.Y, 1), 0, 1)
 		setColor(Color3.fromHSV(hue, saturation, brightness))
 	end
-	local function setHueAt(input: InputObject)
+	local function setHueAt(input)
 		local position = hueBar.AbsolutePosition
 		hue = math.clamp((input.Position.Y - position.Y) / math.max(hueBar.AbsoluteSize.Y, 1), 0, 1)
 		setColor(Color3.fromHSV(hue, saturation, brightness))
@@ -1996,11 +2021,11 @@ function Section:ColorPicker(options: {[string]: any})
 	return colorPicker
 end
 
-function Window:Notify(options: {[string]: any})
+function Window:Notify(options)
 	return self._library:Notify(options)
 end
 
-function Window:SetVisible(visible: boolean)
+function Window:SetVisible(visible)
 	if visible then
 		self._visible = true
 		self.Root.Visible = true
@@ -2027,7 +2052,7 @@ function Window:SetVisible(visible: boolean)
 	end
 end
 
-local function validateConfigName(name: any): (boolean, string)
+local function validateConfigName(name)
 	if type(name) ~= "string" then
 		return false, "config name must be text."
 	end
@@ -2044,7 +2069,7 @@ local function validateConfigName(name: any): (boolean, string)
 	return true, name
 end
 
-function Window:SaveConfig(name: string): (boolean, string?)
+function Window:SaveConfig(name)
 	local library = self._library
 	if not library._configurationSaving.Enabled then
 		return false, "configuration saving is disabled."
@@ -2072,11 +2097,11 @@ function Window:SaveConfig(name: string): (boolean, string?)
 	return true
 end
 
-function Window:CreateConfig(name: string): (boolean, string?)
+function Window:CreateConfig(name)
 	return self:SaveConfig(name)
 end
 
-function Window:LoadConfig(name: string): (boolean, string?)
+function Window:LoadConfig(name)
 	local library = self._library
 	if not library._configurationSaving.Enabled then
 		return false, "configuration saving is disabled."
@@ -2115,7 +2140,7 @@ function Window:LoadConfig(name: string): (boolean, string?)
 	return true
 end
 
-function Window:ListConfigs(): (boolean, {string}?, string?)
+function Window:ListConfigs()
 	if not self._library._configurationSaving.Enabled then
 		return false, nil, "configuration saving is disabled."
 	end
@@ -2143,7 +2168,7 @@ function Window:ListConfigs(): (boolean, {string}?, string?)
 	return true, result
 end
 
-function Window:DeleteConfig(name: string): (boolean, string?)
+function Window:DeleteConfig(name)
 	if not self._library._configurationSaving.Enabled then
 		return false, "configuration saving is disabled."
 	end
@@ -2166,7 +2191,7 @@ function Window:DeleteConfig(name: string): (boolean, string?)
 	return true
 end
 
-function Window:_CreateConfigManager(options: {[string]: any})
+function Window:_CreateConfigManager(options)
 	local tab = self:Tab({
 		Name = options.TabName or "configs",
 		Icon = options.Icon or "bookmark",
@@ -2180,7 +2205,7 @@ function Window:_CreateConfigManager(options: {[string]: any})
 		Placeholder = "enter a name",
 		Default = options.DefaultConfig or "",
 	})
-	local function report(success: boolean, message: string?, action: string)
+	local function report(success, message, action)
 		self:Notify({
 			Title = success and "config " .. action or "config error",
 			Content = success and (action .. " completed.") or tostring(message or "operation failed."),
@@ -2212,9 +2237,15 @@ function Window:_CreateConfigManager(options: {[string]: any})
 					report(false, message, "listed")
 					return
 				end
+				local listContent
+				if #names == 0 then
+					listContent = "no configs saved."
+				else
+					listContent = table.concat(names, ", ")
+				end
 				self:Notify({
 					Title = "saved configs",
-					Content = if #names == 0 then "no configs saved." else table.concat(names, ", "),
+					Content = listContent,
 					Duration = 6,
 				})
 			end,
@@ -2232,7 +2263,7 @@ function Window:_CreateConfigManager(options: {[string]: any})
 	section:Buttons({ Buttons = buttons, Height = 34, Gap = 6 })
 end
 
-function HavocLib:Notify(options: {[string]: any})
+function HavocLib:Notify(options)
 	assert(type(options) == "table", "Notify requires an options table")
 	local title = options.Title or "notification"
 	local content = options.Content or ""
