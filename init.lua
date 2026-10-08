@@ -199,7 +199,7 @@ local Elements = (function()
 			TextColor3 = COLORS.Text,
 			TextSize = 13,
 		}, parent)
-		componentElements.Corner(element, 11)
+		componentElements.Corner(element, 12)
 		local outline = componentElements.Stroke(element)
 		if not manualFeedback then
 			element.SelectionGained:Connect(function()
@@ -297,10 +297,10 @@ local Elements = (function()
 			Size = options.Size or UDim2.new(1, 0, 0, 50),
 		}, parent)
 		componentElements.Corner(row, 12)
-		local rowStroke = componentElements.Stroke(row, 0.93)
+		local rowStroke = componentElements.Stroke(row, 1)
 		local label = componentElements.TextLabel(row, options.Name, 14, COLORS.Text, Enum.Font.GothamMedium)
-		label.Position = UDim2.fromOffset(29, 0)
-		label.Size = UDim2.new(1, -97, 1, 0)
+		label.Position = UDim2.fromOffset(20, 0)
+		label.Size = UDim2.new(1, -90, 1, 0)
 		local track = componentElements.Make("Frame", {
 			AnchorPoint = Vector2.new(1, 0.5),
 			BackgroundColor3 = value and COLORS.ToggleOn or Color3.fromRGB(76, 77, 82),
@@ -362,11 +362,11 @@ local Elements = (function()
 		end
 		hitbox.MouseEnter:Connect(function()
 			componentElements.Tween(row, Theme.HoverDuration, { BackgroundColor3 = COLORS.SurfaceAlt })
-			componentElements.Tween(rowStroke, Theme.HoverDuration, { Transparency = 0.84 })
+			componentElements.Tween(rowStroke, Theme.HoverDuration, { Transparency = 1 })
 		end)
 		hitbox.MouseLeave:Connect(function()
 			componentElements.Tween(row, Theme.HoverDuration, { BackgroundColor3 = COLORS.Container })
-			componentElements.Tween(rowStroke, Theme.HoverDuration, { Transparency = 0.93 })
+			componentElements.Tween(rowStroke, Theme.HoverDuration, { Transparency = 1 })
 		end)
 		hitbox.SelectionGained:Connect(function()
 			componentElements.Tween(rowStroke, Theme.HoverDuration, {
@@ -377,7 +377,7 @@ local Elements = (function()
 		hitbox.SelectionLost:Connect(function()
 			componentElements.Tween(rowStroke, Theme.HoverDuration, {
 				Color = Theme.Stroke.Color,
-				Transparency = 0.93,
+				Transparency = 1,
 			})
 		end)
 		hitbox.MouseButton1Click:Connect(function()
@@ -405,45 +405,43 @@ local Elements = (function()
 		assert(isFiniteNumber(default), "Slider Default must be a finite number")
 		local value = math.clamp(default, minimum, maximum)
 		local row = componentElements.Make("Frame", {
-			BackgroundColor3 = Color3.fromRGB(38, 39, 43),
+			BackgroundColor3 = COLORS.Container,
 			BorderSizePixel = 0,
-			Size = UDim2.new(1, 0, 0, 94),
+			Size = UDim2.new(1, 0, 0, 102),
 		}, parent)
 		componentElements.Corner(row, 12)
-		local rowStroke = componentElements.Stroke(row, 0.93)
-		componentElements.Gradient(row, Color3.fromRGB(38, 39, 43), Color3.fromRGB(34, 35, 39))
 		local name = componentElements.TextLabel(row, options.Name, 14, COLORS.Text, Enum.Font.GothamMedium)
-		name.Position = UDim2.fromOffset(29, 7)
-		name.Size = UDim2.new(1, -139, 0, 24)
+		name.Position = UDim2.fromOffset(20, 7)
+		name.Size = UDim2.new(1, -40, 0, 24)
 		local valueBox = componentElements.Make("TextBox", {
-			AnchorPoint = Vector2.new(1, 0),
-			BackgroundColor3 = Color3.fromRGB(27, 27, 30),
+			AnchorPoint = Vector2.new(1, 0.5),
+			BackgroundColor3 = COLORS.SurfaceAlt,
 			ClearTextOnFocus = false,
 			Font = Enum.Font.Gotham,
-			Position = UDim2.new(1, -16, 0, 7),
+			Position = UDim2.new(1, -20, 0.53, 0),
 			Size = UDim2.fromOffset(68, 24),
 			Text = tostring(value),
 			TextColor3 = COLORS.Text,
 			TextSize = 13,
 			TextXAlignment = Enum.TextXAlignment.Center,
 		}, row)
-		componentElements.Corner(valueBox, 8)
-		local valueStroke = componentElements.Stroke(valueBox, 0.88)
+		componentElements.Corner(valueBox, 12)
+		local valueStroke = componentElements.Stroke(valueBox, 1)
 		local bar = componentElements.Make("Frame", {
 			BackgroundColor3 = Color3.fromRGB(24, 24, 27),
 			BorderSizePixel = 0,
-			Position = UDim2.new(0, 29, 0, 49),
-			Size = UDim2.new(1, -58, 0, 7),
+			Position = UDim2.new(0, 20, 0, 51),
+			Size = UDim2.new(1, -116, 0, 7),
 		}, row)
 		componentElements.Corner(bar, 20)
 		local minimumLabel = componentElements.TextLabel(row, tostring(minimum), 10, Color3.fromRGB(176, 176, 183))
 		minimumLabel.TextSize = 11
-		minimumLabel.Position = UDim2.new(0, 29, 0, 72)
+		minimumLabel.Position = UDim2.new(0, 20, 0, 76)
 		minimumLabel.Size = UDim2.new(0, 70, 0, 16)
 		local maximumLabel = componentElements.TextLabel(row, tostring(maximum), 10, Color3.fromRGB(176, 176, 183))
 		maximumLabel.TextSize = 11
 		maximumLabel.AnchorPoint = Vector2.new(1, 0)
-		maximumLabel.Position = UDim2.new(1, -29, 0, 72)
+		maximumLabel.Position = UDim2.new(1, -116, 0, 76)
 		maximumLabel.Size = UDim2.new(0, 70, 0, 16)
 		local fill = componentElements.Make("Frame", {
 			BackgroundColor3 = COLORS.Primary,
@@ -466,8 +464,8 @@ local Elements = (function()
 			BackgroundTransparency = 1,
 			Name = tostring(options.Name) .. " slider",
 			Selectable = true,
-			Size = UDim2.new(1, 0, 0, 28),
-			Position = UDim2.new(0, 0, 0, 43),
+			Size = UDim2.new(1, -108, 0, 28),
+			Position = UDim2.new(0, 12, 0, 43),
 			Text = "",
 		}, row)
 		local sliderFocusStroke = componentElements.Stroke(row, 1)
@@ -896,7 +894,7 @@ function HavocLib.new(options)
 
 	local minimumWindowSize = Vector2.new(460, 356)
 	local maximumWindowSize = Vector2.new(1080, 820)
-	local defaultWindowSize = Vector2.new(680, 520)
+	local defaultWindowSize = Vector2.new(760, 580)
 	local root = make("Frame", {
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		BackgroundColor3 = COLORS.Background,
@@ -944,7 +942,7 @@ function HavocLib.new(options)
 	table.insert(window._connections, cameraConnection)
 	connectViewport()
 	root.ClipsDescendants = true
-	corner(root, 26)
+	corner(root, 22)
 	local outline = make("Frame", {
 		Active = false,
 		AnchorPoint = root.AnchorPoint,
@@ -955,7 +953,7 @@ function HavocLib.new(options)
 		Size = root.Size,
 		ZIndex = 20,
 	}, screen)
-	corner(outline, 26)
+	corner(outline, 21)
 	local outlineScale = make("UIScale", { Scale = responsiveScale.Scale }, outline)
 	local rootStroke = stroke(outline)
 	rootStroke.Color = Color3.fromRGB(143, 149, 163)
@@ -964,11 +962,17 @@ function HavocLib.new(options)
 	local function syncOutline()
 		outline.AnchorPoint = root.AnchorPoint
 		outline.Position = root.Position
-		outline.Size = root.Size
+		outline.Size = UDim2.new(
+			root.Size.X.Scale,
+			root.Size.X.Offset - 2,
+			root.Size.Y.Scale,
+			root.Size.Y.Offset - 2
+		)
 	end
 	root:GetPropertyChangedSignal("AnchorPoint"):Connect(syncOutline)
 	root:GetPropertyChangedSignal("Position"):Connect(syncOutline)
 	root:GetPropertyChangedSignal("Size"):Connect(syncOutline)
+	syncOutline()
 	responsiveScale:GetPropertyChangedSignal("Scale"):Connect(function()
 		outlineScale.Scale = responsiveScale.Scale
 	end)
@@ -1000,12 +1004,12 @@ function HavocLib.new(options)
 	window._scale = rootScale
 	window._open = true
 
-	local function squareCornerFill(parent, position, color)
+	local function squareCornerFill(parent, position, color, radius)
 		return make("Frame", {
 			BackgroundColor3 = color,
 			BorderSizePixel = 0,
 			Position = position,
-			Size = UDim2.fromOffset(26, 26),
+			Size = UDim2.fromOffset(radius, radius),
 		}, parent)
 	end
 
@@ -1013,14 +1017,14 @@ function HavocLib.new(options)
 		BackgroundColor3 = Color3.fromRGB(23, 25, 31),
 		ClipsDescendants = true,
 		Position = UDim2.fromScale(0, 0),
-		Size = UDim2.new(1, 0, 0, 60),
+		Size = UDim2.new(1, 0, 0, 64),
 	}, root)
 	window.Header = header
-	corner(header, 26)
+	corner(header, 22)
 	padding(header, 12, 0)
 	header.BackgroundColor3 = Color3.fromRGB(19, 20, 23)
-	squareCornerFill(header, UDim2.new(0, 0, 1, -26), header.BackgroundColor3)
-	squareCornerFill(header, UDim2.new(1, -26, 1, -26), header.BackgroundColor3)
+	squareCornerFill(header, UDim2.new(0, 0, 1, -22), header.BackgroundColor3, 22)
+	squareCornerFill(header, UDim2.new(1, -22, 1, -22), header.BackgroundColor3, 22)
 	local headerSeparator = make("Frame", {
 		AnchorPoint = Vector2.new(0, 1),
 		BackgroundColor3 = Color3.fromRGB(255, 255, 255),
@@ -1077,11 +1081,11 @@ function HavocLib.new(options)
 		AnchorPoint = Vector2.new(0, 0.5),
 		BackgroundColor3 = Color3.fromRGB(20, 34, 30),
 		BorderSizePixel = 0,
-		Position = UDim2.new(0, 270, 0.5, 9),
+		Position = UDim2.new(0, 282, 0.5, 5.5),
 		Size = UDim2.fromOffset(66, 18),
 		Visible = config.ShowStatus == true,
 	}, header)
-	corner(statusPill, 11)
+	corner(statusPill, 9)
 	local statusDot = make("Frame", {
 		AnchorPoint = Vector2.new(0, 0.5),
 		BackgroundColor3 = COLORS.Success,
@@ -1097,12 +1101,12 @@ function HavocLib.new(options)
 	statusLabel.TextColor3 = Color3.fromRGB(185, 255, 219)
 	local version = textLabel(header, config.Version or "", 10, COLORS.Muted, Enum.Font.GothamMedium)
 	version.AnchorPoint = Vector2.new(0, 0.5)
-	version.Position = UDim2.new(0, 207, 0.5, 9)
-	version.Size = UDim2.fromOffset(56, 18)
+	version.Position = UDim2.new(0, 212, 0.5, 5.5)
+	version.Size = UDim2.fromOffset(62, 20)
 	version.Visible = config.Version ~= nil
 	version.BackgroundColor3 = Color3.fromRGB(24, 27, 35)
 	version.TextColor3 = Color3.fromRGB(232, 232, 235)
-	corner(version, 12)
+	corner(version, 10)
 	stroke(version, 0.78)
 	Elements.Gradient(version, Color3.fromRGB(33, 37, 45), Color3.fromRGB(22, 24, 31), 90)
 	version.TextXAlignment = Enum.TextXAlignment.Center
@@ -1219,8 +1223,8 @@ function HavocLib.new(options)
 	local body = make("Frame", {
 		BackgroundTransparency = 1,
 		ClipsDescendants = true,
-		Position = UDim2.new(0, 0, 0, 58),
-		Size = UDim2.new(1, 0, 1, config.ShowMetrics == true and -88 or -58),
+		Position = UDim2.new(0, 0, 0, 64),
+		Size = UDim2.new(1, 0, 1, config.ShowMetrics == true and -94 or -64),
 	}, root)
 	window.Body = body
 	local bodyGlow = make("Frame", {
@@ -1230,7 +1234,6 @@ function HavocLib.new(options)
 		Position = UDim2.new(0, 0, 0, 0),
 		Size = UDim2.new(1, 0, 1, 0),
 	}, body)
-	corner(bodyGlow, 26)
 	local sidebar = make("Frame", {
 		BackgroundColor3 = Color3.fromRGB(23, 24, 27),
 		BackgroundTransparency = 0,
@@ -1238,14 +1241,15 @@ function HavocLib.new(options)
 		Position = UDim2.fromScale(0, 0),
 		Size = UDim2.new(0, 138, 1, 0),
 	}, body)
-	corner(sidebar, 26)
-	squareCornerFill(sidebar, UDim2.new(0, 0, 0, 0), sidebar.BackgroundColor3)
-	squareCornerFill(sidebar, UDim2.new(1, -26, 0, 0), sidebar.BackgroundColor3)
-	squareCornerFill(sidebar, UDim2.new(1, -26, 1, -26), sidebar.BackgroundColor3)
+	corner(sidebar, 22)
+	squareCornerFill(sidebar, UDim2.new(0, 0, 0, 0), sidebar.BackgroundColor3, 22)
+	squareCornerFill(sidebar, UDim2.new(1, -22, 0, 0), sidebar.BackgroundColor3, 22)
+	squareCornerFill(sidebar, UDim2.new(1, -22, 1, -22), sidebar.BackgroundColor3, 22)
 	local tabList = make("Frame", {
 		BackgroundTransparency = 1,
+		ClipsDescendants = true,
 		Position = UDim2.fromOffset(8, 12),
-		Size = UDim2.new(1, -16, 1, -24),
+		Size = UDim2.new(1, -16, 1, -34),
 	}, sidebar)
 	local tabLayout = make("UIListLayout", {
 		Padding = UDim.new(0, 6),
@@ -1259,10 +1263,10 @@ function HavocLib.new(options)
 		Position = UDim2.new(0, 138, 0, 0),
 		Size = UDim2.new(1, -138, 1, 0),
 	}, body)
-	corner(content, 26)
-	squareCornerFill(content, UDim2.new(0, 0, 0, 0), content.BackgroundColor3)
-	squareCornerFill(content, UDim2.new(1, -26, 0, 0), content.BackgroundColor3)
-	squareCornerFill(content, UDim2.new(0, 0, 1, -26), content.BackgroundColor3)
+	corner(content, 22)
+	squareCornerFill(content, UDim2.new(0, 0, 0, 0), content.BackgroundColor3, 22)
+	squareCornerFill(content, UDim2.new(1, -22, 0, 0), content.BackgroundColor3, 22)
+	squareCornerFill(content, UDim2.new(0, 0, 1, -22), content.BackgroundColor3, 22)
 	window.Content = content
 	make("Frame", {
 		BackgroundColor3 = Color3.fromRGB(255, 255, 255),
@@ -1310,9 +1314,9 @@ function HavocLib.new(options)
 			AnchorPoint = Vector2.new(0.5, 0.5),
 			BackgroundColor3 = Color3.fromRGB(196, 204, 219),
 			BorderSizePixel = 0,
-			Position = UDim2.new(0.5, 4 - index * 4, 0.5, 4 - index * 4),
+			Position = UDim2.new(0.5, (index - 1) * 4, 0.5, (index - 1) * 4),
 			Rotation = -45,
-			Size = UDim2.fromOffset(2, 5 + index * 2),
+			Size = UDim2.fromOffset(2, 5),
 			ZIndex = resizeMark.ZIndex + 1,
 		}, resizeMark)
 		corner(line, 1)
@@ -1624,7 +1628,7 @@ function Window:Tab(options)
 		ScrollingDirection = Enum.ScrollingDirection.Y,
 		VerticalScrollBarInset = Enum.ScrollBarInset.ScrollBar,
 		Position = UDim2.fromOffset(12, 10),
-		Size = UDim2.new(1, -24, 1, -20),
+		Size = UDim2.new(1, -24, 1, -54),
 		Visible = false,
 	}, self.Content)
 	tab._page = page
@@ -1635,7 +1639,7 @@ function Window:Tab(options)
 		BackgroundTransparency = 0.06,
 		BorderSizePixel = 0,
 		Font = Enum.Font.GothamMedium,
-		Position = UDim2.new(0.5, 0, 1, -8),
+		Position = UDim2.new(0.5, 0, 1, -7),
 		Size = UDim2.fromOffset(142, 25),
 		Text = "Scroll for more  ↓",
 		TextColor3 = Color3.fromRGB(220, 222, 227),
@@ -1722,7 +1726,7 @@ function Window:SelectTab(tab)
 			item._emptyState.Visible = active and #item._cards == 0
 		end
 		tween(item._button, Theme.HoverDuration, {
-			BackgroundColor3 = active and Color3.fromRGB(41, 43, 47) or Color3.fromRGB(32, 33, 36),
+			BackgroundColor3 = active and Color3.fromRGB(37, 38, 42) or Color3.fromRGB(32, 33, 36),
 			BackgroundTransparency = active and 0 or 1,
 		})
 		local itemStroke = item._button:FindFirstChildOfClass("UIStroke")
@@ -1732,7 +1736,7 @@ function Window:SelectTab(tab)
 		end
 		item._indicator.Visible = active
 		tween(item._indicator, 0.24, {
-			BackgroundColor3 = COLORS.Primary,
+			BackgroundColor3 = Color3.fromRGB(120, 146, 206),
 			Size = UDim2.new(0, 2, 0, active and 20 or 0),
 		})
 		for _, child in ipairs(item._button:GetDescendants()) do
@@ -1767,23 +1771,16 @@ function Tab:Section(options)
 	end
 	local frame = make("Frame", {
 		AutomaticSize = Enum.AutomaticSize.Y,
-		BackgroundColor3 = sectionOptions.BackgroundColor or Color3.fromRGB(32, 33, 37),
+		BackgroundColor3 = sectionOptions.BackgroundColor or COLORS.SurfaceAlt,
 		BackgroundTransparency = Theme.PanelTransparency,
 		BorderSizePixel = 0,
 		Size = UDim2.new(1, 0, 0, 0),
 	}, self._page)
-	corner(frame, 18)
-	local sectionStroke = stroke(frame, 0.86)
+	corner(frame, 16)
 	padding(frame, 20, 18)
-	local sectionColor = sectionOptions.BackgroundColor or Color3.fromRGB(32, 33, 37)
-	local sectionGradient = sectionOptions.GradientColor or Color3.fromRGB(28, 29, 33)
-	Elements.Gradient(frame, sectionColor, sectionGradient)
-	frame.MouseEnter:Connect(function()
-		tween(sectionStroke, Theme.HoverDuration, { Transparency = 0.76 })
-	end)
-	frame.MouseLeave:Connect(function()
-		tween(sectionStroke, Theme.HoverDuration, { Transparency = 0.86 })
-	end)
+	if sectionOptions.GradientColor then
+		Elements.Gradient(frame, frame.BackgroundColor3, sectionOptions.GradientColor)
+	end
 	local layout = make("UIListLayout", {
 		Padding = UDim.new(0, 12),
 		SortOrder = Enum.SortOrder.LayoutOrder,
@@ -2112,18 +2109,19 @@ function Section:Keybind(options)
 	assert(typeof(key) == "EnumItem" and key.EnumType == Enum.KeyCode, "Keybind Default must be an Enum.KeyCode")
 	local listening = false
 	local row = make("Frame", {
-		BackgroundColor3 = COLORS.Interactive,
+		BackgroundColor3 = COLORS.Container,
 		BorderSizePixel = 0,
 		Size = UDim2.new(1, 0, 0, 48),
 	}, self._frame)
-	corner(row)
-	stroke(row)
+	corner(row, 12)
 	local label = textLabel(row, options.Name, 13, COLORS.Text, Enum.Font.GothamMedium)
-	label.Position = UDim2.fromOffset(29, 0)
-	label.Size = UDim2.new(1, -139, 1, 0)
-	local keyButton = button(row, key.Name, UDim2.fromOffset(82, 30))
+	label.Position = UDim2.fromOffset(20, 0)
+	label.Size = UDim2.new(1, -120, 1, 0)
+	local keyButton = button(row, key.Name, UDim2.fromOffset(68, 30), COLORS.SurfaceAlt)
 	keyButton.AnchorPoint = Vector2.new(1, 0.5)
-	keyButton.Position = UDim2.new(1, -16, 0.5, 0)
+	keyButton.Position = UDim2.new(1, -20, 0.5, 0)
+	local keyCorner = keyButton:FindFirstChildOfClass("UICorner")
+	if keyCorner then keyCorner.CornerRadius = UDim.new(0, 12) end
 	local keybind = { Value = key, Frame = row }
 	local function setKey(nextKey, fireCallback)
 		assert(typeof(nextKey) == "EnumItem" and nextKey.EnumType == Enum.KeyCode, "Keybind value must be an Enum.KeyCode")
@@ -2161,25 +2159,23 @@ function Section:Input(options)
 	assert(type(options) == "table" and type(options.Name) == "string", "Input requires a Name")
 	local multiline = options.Multiline == true
 	local row = make("Frame", {
-		BackgroundColor3 = COLORS.Interactive,
+		BackgroundColor3 = COLORS.Container,
 		BorderSizePixel = 0,
 		Size = UDim2.new(1, 0, 0, multiline and 104 or 70),
 	}, self._frame)
-	corner(row)
-	stroke(row)
-	Elements.Gradient(row, COLORS.Interactive, Color3.fromRGB(39, 39, 42))
+	corner(row, 12)
 	local label = textLabel(row, options.Name, 13, COLORS.Text, Enum.Font.GothamMedium)
-	label.Position = UDim2.fromOffset(29, 2)
-	label.Size = UDim2.new(1, -58, 0, 25)
+	label.Position = UDim2.fromOffset(20, 2)
+	label.Size = UDim2.new(1, -40, 0, 25)
 	local field = make("TextBox", {
-		BackgroundColor3 = COLORS.Background,
+		BackgroundColor3 = COLORS.SurfaceAlt,
 		ClearTextOnFocus = false,
 		Font = Enum.Font.Gotham,
 		MultiLine = multiline,
 		PlaceholderColor3 = COLORS.Muted,
 		PlaceholderText = options.Placeholder or "Type here...",
-		Position = UDim2.new(0, 21, 0, 31),
-		Size = UDim2.new(1, -42, 0, multiline and 58 or 30),
+		Position = UDim2.new(0, 20, 0, 31),
+		Size = UDim2.new(1, -40, 0, multiline and 58 or 30),
 		Text = options.Default or "",
 		TextColor3 = COLORS.Text,
 		TextSize = 13,
@@ -2188,7 +2184,7 @@ function Section:Input(options)
 		TextYAlignment = multiline and Enum.TextYAlignment.Top or Enum.TextYAlignment.Center,
 		Name = tostring(options.Name) .. " input",
 	}, row)
-	corner(field)
+	corner(field, 12)
 	local fieldStroke = stroke(field)
 	padding(field, 8, 0)
 	field.Focused:Connect(function()
@@ -2213,7 +2209,7 @@ function Section:Input(options)
 			local availableWidth = math.max(field.AbsoluteSize.X - 16, 1)
 			local measured = TextService:GetTextSize(field.Text, field.TextSize, field.Font, Vector2.new(availableWidth, 1000))
 			local height = math.clamp(measured.Y + 16, 54, 240)
-			field.Size = UDim2.new(1, -42, 0, height)
+			field.Size = UDim2.new(1, -40, 0, height)
 			row.Size = UDim2.new(1, 0, 0, height + 36)
 		end
 	end)
