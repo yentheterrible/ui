@@ -242,12 +242,12 @@ local Elements = (function()
 		if not options.TextColor and luminance > 0.55 then
 			textColor = Color3.fromRGB(27, 27, 29)
 		end
-		local size = options.Size or UDim2.new(1, 0, 0, options.Height or 34)
+		local size = options.Size or UDim2.new(1, 0, 0, options.Height or 42)
 		local element = componentElements.Button(parent, options.Name, size, backgroundColor)
 		element.BackgroundColor3 = backgroundColor
 		element.TextColor3 = textColor
 		element.Font = Enum.Font.GothamBold
-		element.TextSize = 12
+		element.TextSize = 13
 		local gradientShade
 		if luminance > 0.55 then
 			gradientShade = 0.08
@@ -284,7 +284,7 @@ local Elements = (function()
 		local row = componentElements.Make("Frame", {
 			BackgroundColor3 = Color3.fromRGB(35, 35, 38),
 			BorderSizePixel = 0,
-			Size = options.Size or UDim2.new(1, 0, 0, 46),
+			Size = options.Size or UDim2.new(1, 0, 0, 50),
 		}, parent)
 		componentElements.Corner(row, 7)
 		local rowStroke = componentElements.Stroke(row, 0.97)
@@ -296,7 +296,7 @@ local Elements = (function()
 			BackgroundColor3 = value and COLORS.ToggleOn or Color3.fromRGB(69, 69, 73),
 			BorderSizePixel = 0,
 			Position = UDim2.new(1, -16, 0.5, 0),
-			Size = UDim2.fromOffset(42, 24),
+			Size = UDim2.fromOffset(46, 26),
 		}, row)
 		componentElements.Corner(track, 20)
 		local trackStroke = componentElements.Stroke(track, 0)
@@ -882,12 +882,12 @@ function HavocLib.new(options)
 	self.Window = window
 	window.Backdrop = backdrop
 
-	local minimumWindowSize = Vector2.new(540, 420)
-	local maximumWindowSize = Vector2.new(920, 700)
+	local minimumWindowSize = Vector2.new(640, 495)
+	local maximumWindowSize = Vector2.new(1040, 760)
 	local initialViewport = Workspace.CurrentCamera and Workspace.CurrentCamera.ViewportSize or Vector2.new(1280, 720)
 	local defaultWindowSize = Vector2.new(
-		math.clamp(initialViewport.X * 0.5, minimumWindowSize.X, maximumWindowSize.X),
-		math.clamp(initialViewport.Y * 0.65, minimumWindowSize.Y, maximumWindowSize.Y)
+		math.clamp(initialViewport.X * 0.62, minimumWindowSize.X, maximumWindowSize.X),
+		math.clamp(initialViewport.Y * 0.76, minimumWindowSize.Y, maximumWindowSize.Y)
 	)
 	local root = make("Frame", {
 		AnchorPoint = Vector2.new(0.5, 0.5),
@@ -1123,7 +1123,7 @@ function HavocLib.new(options)
 		BackgroundTransparency = 0,
 		BorderSizePixel = 0,
 		Position = UDim2.fromScale(0, 0),
-		Size = UDim2.new(0, 144, 1, 0),
+		Size = UDim2.new(0, 228, 1, 0),
 	}, body)
 	Elements.Gradient(sidebar, Color3.fromRGB(18, 18, 19), Color3.fromRGB(16, 16, 17), 90)
 	local tabList = make("Frame", {
@@ -1140,8 +1140,8 @@ function HavocLib.new(options)
 	local content = make("Frame", {
 		BackgroundColor3 = Color3.fromRGB(26, 26, 27),
 		BackgroundTransparency = 0,
-		Position = UDim2.new(0, 144, 0, 0),
-		Size = UDim2.new(1, -144, 1, 0),
+		Position = UDim2.new(0, 228, 0, 0),
+		Size = UDim2.new(1, -228, 1, 0),
 	}, body)
 	Elements.Gradient(content, Color3.fromRGB(26, 26, 27), Color3.fromRGB(24, 24, 25), 145)
 	window.Content = content
@@ -1149,7 +1149,7 @@ function HavocLib.new(options)
 		BackgroundColor3 = Color3.fromRGB(255, 255, 255),
 		BackgroundTransparency = 0.955,
 		BorderSizePixel = 0,
-		Position = UDim2.new(0, 143, 0, 0),
+		Position = UDim2.new(0, 227, 0, 0),
 		Size = UDim2.new(0, 1, 1, 0),
 	}, body)
 
@@ -1530,9 +1530,9 @@ function Window:Tab(options)
 		emptyLabel.TextXAlignment = Enum.TextXAlignment.Center
 		tab._emptyState = emptyState
 	end
-	padding(page, 22, 30)
+	padding(page, 26, 40)
 	local pageLayout = make("UIListLayout", {
-		Padding = UDim.new(0, 16),
+		Padding = UDim.new(0, 20),
 		SortOrder = Enum.SortOrder.LayoutOrder,
 	}, page)
 	setCanvasHeight(page, pageLayout, 30)
@@ -1578,15 +1578,15 @@ function Window:SelectTab(tab)
 			item._emptyState.Visible = active and #item._cards == 0
 		end
 		tween(item._button, Theme.HoverDuration, {
-			BackgroundColor3 = active and Color3.fromRGB(36, 51, 72) or Color3.fromRGB(32, 32, 34),
+			BackgroundColor3 = active and Color3.fromRGB(39, 39, 42) or Color3.fromRGB(32, 32, 34),
 			BackgroundTransparency = active and 0 or 1,
 		})
 		local itemStroke = item._button:FindFirstChildOfClass("UIStroke")
 		if itemStroke then
-			itemStroke.Transparency = active and 0.72 or 1
-			itemStroke.Color = active and COLORS.Primary or Theme.Stroke.Color
+			itemStroke.Transparency = active and 0.88 or 1
+			itemStroke.Color = active and Color3.fromRGB(180, 180, 186) or Theme.Stroke.Color
 		end
-		item._indicator.Visible = active
+		item._indicator.Visible = false
 		tween(item._indicator, 0.24, {
 			BackgroundColor3 = COLORS.Primary,
 			Size = UDim2.new(0, 3, 0, active and 24 or 0),
@@ -1595,11 +1595,11 @@ function Window:SelectTab(tab)
 			if child:IsA("TextLabel") and child ~= item.Badge then
 				tween(child, Theme.HoverDuration, { TextColor3 = active and COLORS.Text or Color3.fromRGB(190, 190, 196) })
 			elseif child:IsA("ImageLabel") then
-				tween(child, Theme.HoverDuration, { ImageColor3 = active and COLORS.Primary or COLORS.Icon })
+				tween(child, Theme.HoverDuration, { ImageColor3 = active and Color3.fromRGB(218, 218, 222) or COLORS.Icon })
 			elseif child:IsA("Frame") and child.Name == "HavocIconPart" then
-				tween(child, Theme.HoverDuration, { BackgroundColor3 = active and COLORS.Primary or COLORS.Icon })
+				tween(child, Theme.HoverDuration, { BackgroundColor3 = active and Color3.fromRGB(218, 218, 222) or COLORS.Icon })
 			elseif child:IsA("UIStroke") then
-				tween(child, Theme.HoverDuration, { Color = active and COLORS.Primary or COLORS.Icon })
+				tween(child, Theme.HoverDuration, { Color = active and Color3.fromRGB(218, 218, 222) or COLORS.Icon })
 			end
 		end
 	end
@@ -1628,9 +1628,9 @@ function Tab:Section(options)
 		BorderSizePixel = 0,
 		Size = UDim2.new(1, 0, 0, 0),
 	}, self._page)
-	corner(frame, 7)
+	corner(frame, 14)
 	local sectionStroke = stroke(frame, 0.9)
-	padding(frame, 18, 17)
+	padding(frame, 20, 19)
 	local sectionColor = sectionOptions.BackgroundColor or Color3.fromRGB(31, 31, 34)
 	local sectionGradient = sectionOptions.GradientColor or Color3.fromRGB(28, 28, 31)
 	Elements.Gradient(frame, sectionColor, sectionGradient)
@@ -1778,7 +1778,7 @@ function Section:Buttons(options)
 	local gap = options.Gap or 8
 	local row = make("Frame", {
 		BackgroundTransparency = 1,
-		Size = UDim2.new(1, 0, 0, options.Height or 32),
+		Size = UDim2.new(1, 0, 0, options.Height or 46),
 	}, self._frame)
 	local layout = make("UIListLayout", {
 		FillDirection = Enum.FillDirection.Horizontal,
@@ -1790,7 +1790,7 @@ function Section:Buttons(options)
 		assert(type(item) == "table" and type(item.Name) == "string", "Each button requires a Name")
 		local widthScale = 1 / #items
 		local buttonOptions = table.clone(item)
-		buttonOptions.Size = UDim2.new(widthScale, -gap * (#items - 1) / #items, 0, options.Height or 32)
+		buttonOptions.Size = UDim2.new(widthScale, -gap * (#items - 1) / #items, 0, options.Height or 46)
 		Elements.ActionButton(row, buttonOptions, self._window._library).LayoutOrder = index
 	end
 	layout.Name = "ButtonLayout"
