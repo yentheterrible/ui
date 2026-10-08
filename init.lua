@@ -1000,6 +1000,15 @@ function HavocLib.new(options)
 	window._scale = rootScale
 	window._open = true
 
+	local function squareCornerFill(parent, position, color)
+		return make("Frame", {
+			BackgroundColor3 = color,
+			BorderSizePixel = 0,
+			Position = position,
+			Size = UDim2.fromOffset(26, 26),
+		}, parent)
+	end
+
 	local header = make("Frame", {
 		BackgroundColor3 = Color3.fromRGB(23, 25, 31),
 		ClipsDescendants = true,
@@ -1007,9 +1016,11 @@ function HavocLib.new(options)
 		Size = UDim2.new(1, 0, 0, 60),
 	}, root)
 	window.Header = header
-	-- Let the rounded root clip the header so its lower edge stays straight.
+	corner(header, 26)
 	padding(header, 12, 0)
 	header.BackgroundColor3 = Color3.fromRGB(19, 20, 23)
+	squareCornerFill(header, UDim2.new(0, 0, 1, -26), header.BackgroundColor3)
+	squareCornerFill(header, UDim2.new(1, -26, 1, -26), header.BackgroundColor3)
 	local headerSeparator = make("Frame", {
 		AnchorPoint = Vector2.new(0, 1),
 		BackgroundColor3 = Color3.fromRGB(255, 255, 255),
@@ -1066,8 +1077,8 @@ function HavocLib.new(options)
 		AnchorPoint = Vector2.new(0, 0.5),
 		BackgroundColor3 = Color3.fromRGB(20, 34, 30),
 		BorderSizePixel = 0,
-		Position = UDim2.new(0, 210, 0.5, 0),
-		Size = UDim2.fromOffset(74, 22),
+		Position = UDim2.new(0, 270, 0.5, 9),
+		Size = UDim2.fromOffset(66, 18),
 		Visible = config.ShowStatus == true,
 	}, header)
 	corner(statusPill, 11)
@@ -1075,22 +1086,26 @@ function HavocLib.new(options)
 		AnchorPoint = Vector2.new(0, 0.5),
 		BackgroundColor3 = COLORS.Success,
 		BorderSizePixel = 0,
-		Position = UDim2.new(0, 8, 0.5, 0),
-		Size = UDim2.fromOffset(7, 7),
+		Position = UDim2.new(0, 7, 0.5, 0),
+		Size = UDim2.fromOffset(6, 6),
 	}, statusPill)
 	corner(statusDot, 99)
 	local statusLabel = textLabel(statusPill, "live", 9, Color3.fromRGB(175, 255, 215), Enum.Font.GothamBold)
-	statusLabel.Position = UDim2.fromOffset(19, 0)
-	statusLabel.Size = UDim2.new(1, -19, 1, 0)
+	statusLabel.Position = UDim2.fromOffset(17, 0)
+	statusLabel.Size = UDim2.new(1, -17, 1, 0)
 	statusLabel.TextXAlignment = Enum.TextXAlignment.Left
 	statusLabel.TextColor3 = Color3.fromRGB(185, 255, 219)
 	local version = textLabel(header, config.Version or "", 10, COLORS.Muted, Enum.Font.GothamMedium)
 	version.AnchorPoint = Vector2.new(0, 0.5)
-	version.Position = UDim2.new(0, 207, 0.5, 10)
-	version.Size = UDim2.fromOffset(52, 16)
+	version.Position = UDim2.new(0, 207, 0.5, 9)
+	version.Size = UDim2.fromOffset(56, 18)
 	version.Visible = config.Version ~= nil
-	version.TextColor3 = COLORS.Muted
-	version.TextXAlignment = Enum.TextXAlignment.Left
+	version.BackgroundColor3 = Color3.fromRGB(24, 27, 35)
+	version.TextColor3 = Color3.fromRGB(232, 232, 235)
+	corner(version, 12)
+	stroke(version, 0.78)
+	Elements.Gradient(version, Color3.fromRGB(33, 37, 45), Color3.fromRGB(22, 24, 31), 90)
+	version.TextXAlignment = Enum.TextXAlignment.Center
 	version.Font = Enum.Font.GothamMedium
 
 	local search = make("TextBox", {
@@ -1223,16 +1238,10 @@ function HavocLib.new(options)
 		Position = UDim2.fromScale(0, 0),
 		Size = UDim2.new(0, 138, 1, 0),
 	}, body)
-	corner(sidebar, 18)
-	Elements.Gradient(sidebar, Color3.fromRGB(25, 26, 29), Color3.fromRGB(20, 21, 24), 90)
-	local sidebarGlow = make("Frame", {
-		BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-		BackgroundTransparency = 0.99,
-		BorderSizePixel = 0,
-		Position = UDim2.new(0, 0, 0, 0),
-		Size = UDim2.new(1, 0, 1, 0),
-	}, sidebar)
-	corner(sidebarGlow, 18)
+	corner(sidebar, 26)
+	squareCornerFill(sidebar, UDim2.new(0, 0, 0, 0), sidebar.BackgroundColor3)
+	squareCornerFill(sidebar, UDim2.new(1, -26, 0, 0), sidebar.BackgroundColor3)
+	squareCornerFill(sidebar, UDim2.new(1, -26, 1, -26), sidebar.BackgroundColor3)
 	local tabList = make("Frame", {
 		BackgroundTransparency = 1,
 		Position = UDim2.fromOffset(8, 12),
@@ -1250,8 +1259,10 @@ function HavocLib.new(options)
 		Position = UDim2.new(0, 138, 0, 0),
 		Size = UDim2.new(1, -138, 1, 0),
 	}, body)
-	corner(content, 18)
-	Elements.Gradient(content, Color3.fromRGB(29, 30, 33), Color3.fromRGB(25, 26, 29), 145)
+	corner(content, 26)
+	squareCornerFill(content, UDim2.new(0, 0, 0, 0), content.BackgroundColor3)
+	squareCornerFill(content, UDim2.new(1, -26, 0, 0), content.BackgroundColor3)
+	squareCornerFill(content, UDim2.new(0, 0, 1, -26), content.BackgroundColor3)
 	window.Content = content
 	make("Frame", {
 		BackgroundColor3 = Color3.fromRGB(255, 255, 255),
@@ -1288,18 +1299,18 @@ function HavocLib.new(options)
 	corner(resizeGrip, 17)
 	local resizeStroke = stroke(resizeGrip, 1)
 	local resizeMark = make("Frame", {
-		AnchorPoint = Vector2.new(1, 1),
+		AnchorPoint = Vector2.new(0.5, 0.5),
 		BackgroundTransparency = 1,
-		Position = UDim2.new(1, -8, 1, -8),
-		Size = UDim2.fromOffset(13, 13),
+		Position = UDim2.fromScale(0.5, 0.5),
+		Size = UDim2.fromOffset(16, 16),
 		ZIndex = resizeGrip.ZIndex + 1,
 	}, resizeGrip)
 	for index = 0, 2 do
 		local line = make("Frame", {
-			AnchorPoint = Vector2.new(1, 1),
+			AnchorPoint = Vector2.new(0.5, 0.5),
 			BackgroundColor3 = Color3.fromRGB(196, 204, 219),
 			BorderSizePixel = 0,
-			Position = UDim2.new(1, -index * 5, 1, 0),
+			Position = UDim2.new(0.5, 4 - index * 4, 0.5, 4 - index * 4),
 			Rotation = -45,
 			Size = UDim2.fromOffset(2, 5 + index * 2),
 			ZIndex = resizeMark.ZIndex + 1,
