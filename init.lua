@@ -305,7 +305,7 @@ local Elements = (function()
 			AnchorPoint = Vector2.new(1, 0.5),
 			BackgroundColor3 = value and COLORS.ToggleOn or Color3.fromRGB(76, 77, 82),
 			BorderSizePixel = 0,
-			Position = UDim2.new(1, -16, 0.5, 0),
+			Position = UDim2.new(1, -24, 0.5, 0),
 			Size = UDim2.fromOffset(46, 26),
 		}, row)
 		componentElements.Corner(track, 26)
@@ -418,7 +418,7 @@ local Elements = (function()
 			BackgroundColor3 = COLORS.SurfaceAlt,
 			ClearTextOnFocus = false,
 			Font = Enum.Font.Gotham,
-			Position = UDim2.new(1, -20, 0.53, 0),
+			Position = UDim2.new(1, -24, 0.53, 0),
 			Size = UDim2.fromOffset(68, 24),
 			Text = tostring(value),
 			TextColor3 = COLORS.Text,
@@ -431,7 +431,7 @@ local Elements = (function()
 			BackgroundColor3 = Color3.fromRGB(24, 24, 27),
 			BorderSizePixel = 0,
 			Position = UDim2.new(0, 20, 0, 51),
-			Size = UDim2.new(1, -116, 0, 7),
+			Size = UDim2.new(1, -124, 0, 7),
 		}, row)
 		componentElements.Corner(bar, 20)
 		local minimumLabel = componentElements.TextLabel(row, tostring(minimum), 10, Color3.fromRGB(176, 176, 183))
@@ -441,7 +441,7 @@ local Elements = (function()
 		local maximumLabel = componentElements.TextLabel(row, tostring(maximum), 10, Color3.fromRGB(176, 176, 183))
 		maximumLabel.TextSize = 11
 		maximumLabel.AnchorPoint = Vector2.new(1, 0)
-		maximumLabel.Position = UDim2.new(1, -116, 0, 76)
+		maximumLabel.Position = UDim2.new(1, -104, 0, 76)
 		maximumLabel.Size = UDim2.new(0, 70, 0, 16)
 		local fill = componentElements.Make("Frame", {
 			BackgroundColor3 = COLORS.Primary,
@@ -464,7 +464,7 @@ local Elements = (function()
 			BackgroundTransparency = 1,
 			Name = tostring(options.Name) .. " slider",
 			Selectable = true,
-			Size = UDim2.new(1, -108, 0, 28),
+			Size = UDim2.new(1, -116, 0, 28),
 			Position = UDim2.new(0, 12, 0, 43),
 			Text = "",
 		}, row)
@@ -1777,7 +1777,7 @@ function Tab:Section(options)
 		Size = UDim2.new(1, 0, 0, 0),
 	}, self._page)
 	corner(frame, 16)
-	padding(frame, 20, 18)
+	padding(frame, 26, 18)
 	if sectionOptions.GradientColor then
 		Elements.Gradient(frame, frame.BackgroundColor3, sectionOptions.GradientColor)
 	end
@@ -2119,7 +2119,7 @@ function Section:Keybind(options)
 	label.Size = UDim2.new(1, -120, 1, 0)
 	local keyButton = button(row, key.Name, UDim2.fromOffset(68, 30), COLORS.SurfaceAlt)
 	keyButton.AnchorPoint = Vector2.new(1, 0.5)
-	keyButton.Position = UDim2.new(1, -20, 0.5, 0)
+	keyButton.Position = UDim2.new(1, -24, 0.5, 0)
 	local keyCorner = keyButton:FindFirstChildOfClass("UICorner")
 	if keyCorner then keyCorner.CornerRadius = UDim.new(0, 12) end
 	local keybind = { Value = key, Frame = row }
