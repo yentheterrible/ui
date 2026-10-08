@@ -10,25 +10,33 @@ local Workspace = game:GetService("Workspace")
 
 local Theme = {}
 
+local function isFiniteNumber(value)
+	return type(value) == "number" and value == value and math.abs(value) < math.huge
+end
+
 Theme.Colors = {
-	Background = Color3.fromRGB(14, 15, 17),
-	Container = Color3.fromRGB(29, 30, 33),
-	Interactive = Color3.fromRGB(39, 40, 44),
-	Accent = Color3.fromRGB(238, 239, 242),
-	Primary = Color3.fromRGB(10, 132, 255),
-	ToggleOn = Color3.fromRGB(48, 209, 88),
-	Border = Color3.fromRGB(72, 74, 81),
-	Text = Color3.fromRGB(245, 245, 247),
-	Muted = Color3.fromRGB(174, 176, 183),
-	Icon = Color3.fromRGB(155, 158, 167),
-	Success = Color3.fromRGB(48, 209, 88),
+	Background = Color3.fromRGB(8, 10, 16),
+	Surface = Color3.fromRGB(18, 20, 28),
+	SurfaceAlt = Color3.fromRGB(22, 24, 33),
+	Container = Color3.fromRGB(27, 29, 38),
+	Interactive = Color3.fromRGB(42, 46, 56),
+	Accent = Color3.fromRGB(157, 163, 255),
+	Primary = Color3.fromRGB(109, 152, 255),
+	PrimaryStrong = Color3.fromRGB(128, 202, 255),
+	ToggleOn = Color3.fromRGB(85, 224, 165),
+	Border = Color3.fromRGB(101, 109, 132),
+	Text = Color3.fromRGB(245, 247, 251),
+	Muted = Color3.fromRGB(173, 178, 191),
+	Icon = Color3.fromRGB(202, 207, 220),
+	Success = Color3.fromRGB(94, 221, 170),
+	Glow = Color3.fromRGB(130, 140, 255),
 }
 
-Theme.CornerRadius = UDim.new(0, 12)
+Theme.CornerRadius = UDim.new(0, 18)
 Theme.Stroke = {
 	Color = Color3.fromRGB(255, 255, 255),
-	Thickness = 1.2,
-	Transparency = 0.92,
+	Thickness = 1.15,
+	Transparency = 0.82,
 	ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
 	LineJoinMode = Enum.LineJoinMode.Round,
 }
@@ -380,8 +388,20 @@ local Elements = (function()
 		local minimum = options.Min or 0
 		local maximum = options.Max or 100
 		local step = options.Step or 1
-		assert(maximum > minimum and step > 0, "Slider requires Max > Min and Step > 0")
-		local value = math.clamp(options.Default or minimum, minimum, maximum)
+		assert(
+			isFiniteNumber(minimum)
+				and isFiniteNumber(maximum)
+				and isFiniteNumber(step)
+				and maximum > minimum
+				and step > 0,
+			"Slider requires finite Min and Max values with Max > Min, and a finite Step > 0"
+		)
+		local default = options.Default
+		if default == nil then
+			default = minimum
+		end
+		assert(isFiniteNumber(default), "Slider Default must be a finite number")
+		local value = math.clamp(default, minimum, maximum)
 		local row = componentElements.Make("Frame", {
 			BackgroundColor3 = Color3.fromRGB(38, 39, 43),
 			BorderSizePixel = 0,
@@ -469,9 +489,7 @@ local Elements = (function()
 			return string.format("%." .. tostring(math.clamp(decimals, 0, 6)) .. "f", number)
 		end
 		local function setValue(nextValue, fireCallback)
-			if nextValue ~= nextValue or math.abs(nextValue) == math.huge then
-				return
-			end
+			assert(isFiniteNumber(nextValue), "Slider value must be a finite number")
 			local snapped = minimum + math.floor((math.clamp(nextValue, minimum, maximum) - minimum) / step + 0.5) * step
 			value = math.clamp(snapped, minimum, maximum)
 			slider.Value = value
@@ -923,34 +941,64 @@ function HavocLib.new(options)
 	table.insert(window._connections, cameraConnection)
 	connectViewport()
 	root.ClipsDescendants = true
-	corner(root, 20)
-	local rootStroke = stroke(root, 0)
-	rootStroke.Color = Color3.fromRGB(102, 112, 132)
-	rootStroke.Transparency = 1
+	corner(root, 26)
+	local rootStroke = stroke(root, 0.72)
+	rootStroke.Color = Color3.fromRGB(157, 180, 255)
+	rootStroke.Transparency = 0.76
 	window._stroke = rootStroke
-	Elements.Gradient(root, COLORS.Background, Color3.fromRGB(12, 12, 13), 145)
+	Elements.Gradient(root, COLORS.Background, Color3.fromRGB(12, 14, 19), 145)
+	local rootGlow = make("Frame", {
+		AnchorPoint = Vector2.new(0.5, 0),
+		BackgroundColor3 = COLORS.Glow,
+		BackgroundTransparency = 0.86,
+		BorderSizePixel = 0,
+		Position = UDim2.new(0.5, 0, 0, -18),
+		Size = UDim2.new(0.82, 0, 0, 88),
+	}, root)
+	corner(rootGlow, 40)
+	local rootGlowGradient = make("UIGradient", {
+		Color = ColorSequence.new({
+			ColorSequenceKeypoint.new(0, Color3.fromRGB(126, 142, 255)),
+			ColorSequenceKeypoint.new(0.5, Color3.fromRGB(116, 193, 255)),
+			ColorSequenceKeypoint.new(1, Color3.fromRGB(126, 142, 255)),
+		}),
+		Rotation = 0,
+	}, rootGlow)
+	rootGlowGradient.Transparency = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 0.94),
+		NumberSequenceKeypoint.new(1, 1),
+	})
 	local rootScale = make("UIScale", { Scale = Theme.OpenScale }, root)
 	window._scale = rootScale
 	window._open = true
 
 	local header = make("Frame", {
-		BackgroundColor3 = Color3.fromRGB(23, 24, 27),
+		BackgroundColor3 = Color3.fromRGB(23, 25, 31),
 		ClipsDescendants = true,
 		Position = UDim2.fromScale(0, 0),
-		Size = UDim2.new(1, 0, 0, 52),
+		Size = UDim2.new(1, 0, 0, 54),
 	}, root)
 	window.Header = header
-	corner(header, 20)
-	padding(header, 9, 0)
-	Elements.Gradient(header, Color3.fromRGB(23, 24, 27), Color3.fromRGB(17, 18, 20))
-	make("Frame", {
+	corner(header, 26)
+	padding(header, 12, 0)
+	Elements.Gradient(header, Color3.fromRGB(29, 31, 38), Color3.fromRGB(18, 20, 27), 90)
+	local headerShine = make("Frame", {
+		BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+		BackgroundTransparency = 0.92,
+		BorderSizePixel = 0,
+		Position = UDim2.new(0, 0, 0, 0),
+		Size = UDim2.new(1, 0, 0, 1),
+	}, header)
+	corner(headerShine, 26)
+	local headerSeparator = make("Frame", {
 		AnchorPoint = Vector2.new(0, 1),
 		BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-		BackgroundTransparency = 0.93,
+		BackgroundTransparency = 0.96,
 		BorderSizePixel = 0,
 		Position = UDim2.new(0, 0, 1, 0),
 		Size = UDim2.new(1, 0, 0, 1),
 	}, header)
+	corner(headerSeparator, 26)
 	if config.Logo ~= nil then
 		local logoAsset
 		if type(config.Logo) == "number" and config.Logo > 0 and config.Logo % 1 == 0 then
@@ -990,26 +1038,47 @@ function HavocLib.new(options)
 	end
 	local title = textLabel(header, config.Title or "havoc lib", 12, COLORS.Text, Enum.Font.GothamBold)
 	title.Position = UDim2.fromOffset(36, 5)
-	title.Size = UDim2.new(0, 150, 0, 19)
+	title.Size = UDim2.new(0, 170, 0, 19)
 	title.TextSize = 14
 	local subtitle = textLabel(header, config.Subtitle or "made by convict", 11, Color3.fromRGB(200, 200, 205))
 	subtitle.Position = UDim2.fromOffset(36, 25)
-	subtitle.Size = UDim2.new(0, 150, 0, 16)
+	subtitle.Size = UDim2.new(0, 170, 0, 16)
+	local statusPill = make("Frame", {
+		AnchorPoint = Vector2.new(0, 0.5),
+		BackgroundColor3 = Color3.fromRGB(20, 34, 30),
+		BorderSizePixel = 0,
+		Position = UDim2.new(0, 187, 0.5, 0),
+		Size = UDim2.fromOffset(74, 22),
+	}, header)
+	corner(statusPill, 11)
+	local statusDot = make("Frame", {
+		AnchorPoint = Vector2.new(0, 0.5),
+		BackgroundColor3 = COLORS.Success,
+		BorderSizePixel = 0,
+		Position = UDim2.new(0, 8, 0.5, 0),
+		Size = UDim2.fromOffset(7, 7),
+	}, statusPill)
+	corner(statusDot, 99)
+	local statusLabel = textLabel(statusPill, "live", 9, Color3.fromRGB(175, 255, 215), Enum.Font.GothamBold)
+	statusLabel.Position = UDim2.fromOffset(19, 0)
+	statusLabel.Size = UDim2.new(1, -19, 1, 0)
+	statusLabel.TextXAlignment = Enum.TextXAlignment.Left
+	statusLabel.TextColor3 = Color3.fromRGB(185, 255, 219)
 	local version = textLabel(header, config.Version or "v0.1.0", 10, COLORS.Muted, Enum.Font.GothamMedium)
 	version.AnchorPoint = Vector2.new(0, 0.5)
-	version.Position = UDim2.new(0, 194, 0.5, 0)
+	version.Position = UDim2.new(0, 268, 0.5, 0)
 	version.Size = UDim2.fromOffset(64, 24)
-	version.BackgroundColor3 = COLORS.Interactive
+	version.BackgroundColor3 = Color3.fromRGB(24, 27, 35)
 	version.TextColor3 = Color3.fromRGB(232, 232, 235)
-	corner(version)
+	corner(version, 12)
 	stroke(version, 0.78)
-	Elements.Gradient(version, Color3.fromRGB(45, 45, 48), Color3.fromRGB(37, 37, 39), 90)
+	Elements.Gradient(version, Color3.fromRGB(33, 37, 45), Color3.fromRGB(22, 24, 31), 90)
 	version.TextXAlignment = Enum.TextXAlignment.Center
 	version.Font = Enum.Font.GothamMedium
 
 	local search = make("TextBox", {
 		AnchorPoint = Vector2.new(1, 0.5),
-		BackgroundColor3 = COLORS.Interactive,
+		BackgroundColor3 = Color3.fromRGB(33, 36, 45),
 		ClearTextOnFocus = false,
 		Font = Enum.Font.Gotham,
 		PlaceholderColor3 = COLORS.Muted,
@@ -1023,7 +1092,7 @@ function HavocLib.new(options)
 	}, header)
 	search.Visible = config.SearchEnabled == true
 	search.BackgroundTransparency = 0.08
-	corner(search)
+	corner(search, 12)
 	local searchStroke = stroke(search)
 	search.Focused:Connect(function()
 		tween(searchStroke, Theme.HoverDuration, {
@@ -1102,18 +1171,36 @@ function HavocLib.new(options)
 
 	local body = make("Frame", {
 		BackgroundTransparency = 1,
+		ClipsDescendants = true,
 		Position = UDim2.new(0, 0, 0, 52),
 		Size = UDim2.new(1, 0, 1, config.ShowMetrics == true and -82 or -52),
 	}, root)
 	window.Body = body
+	local bodyGlow = make("Frame", {
+		BackgroundColor3 = Color3.fromRGB(130, 146, 255),
+		BackgroundTransparency = 0.91,
+		BorderSizePixel = 0,
+		Position = UDim2.new(0, 0, 0, 0),
+		Size = UDim2.new(1, 0, 1, 0),
+	}, body)
+	corner(bodyGlow, 26)
 	local sidebar = make("Frame", {
-		BackgroundColor3 = Color3.fromRGB(18, 18, 19),
+		BackgroundColor3 = Color3.fromRGB(21, 23, 31),
 		BackgroundTransparency = 0,
 		BorderSizePixel = 0,
 		Position = UDim2.fromScale(0, 0),
-		Size = UDim2.new(0, 144, 1, 0),
+		Size = UDim2.new(0, 154, 1, 0),
 	}, body)
-	Elements.Gradient(sidebar, Color3.fromRGB(18, 18, 19), Color3.fromRGB(16, 16, 17), 90)
+	corner(sidebar, 18)
+	Elements.Gradient(sidebar, Color3.fromRGB(22, 24, 32), Color3.fromRGB(15, 17, 22), 90)
+	local sidebarGlow = make("Frame", {
+		BackgroundColor3 = Color3.fromRGB(130, 146, 255),
+		BackgroundTransparency = 0.92,
+		BorderSizePixel = 0,
+		Position = UDim2.new(0, 0, 0, 0),
+		Size = UDim2.new(1, 0, 1, 0),
+	}, sidebar)
+	corner(sidebarGlow, 18)
 	local tabList = make("Frame", {
 		BackgroundTransparency = 1,
 		Position = UDim2.fromOffset(8, 12),
@@ -1126,18 +1213,19 @@ function HavocLib.new(options)
 	window._tabList = tabList
 
 	local content = make("Frame", {
-		BackgroundColor3 = Color3.fromRGB(26, 26, 27),
+		BackgroundColor3 = Color3.fromRGB(25, 27, 35),
 		BackgroundTransparency = 0,
-		Position = UDim2.new(0, 144, 0, 0),
-		Size = UDim2.new(1, -144, 1, 0),
+		Position = UDim2.new(0, 154, 0, 0),
+		Size = UDim2.new(1, -154, 1, 0),
 	}, body)
-	Elements.Gradient(content, Color3.fromRGB(26, 26, 27), Color3.fromRGB(24, 24, 25), 145)
+	corner(content, 18)
+	Elements.Gradient(content, Color3.fromRGB(28, 30, 38), Color3.fromRGB(21, 23, 29), 145)
 	window.Content = content
 	make("Frame", {
 		BackgroundColor3 = Color3.fromRGB(255, 255, 255),
 		BackgroundTransparency = 0.955,
 		BorderSizePixel = 0,
-		Position = UDim2.new(0, 143, 0, 0),
+		Position = UDim2.new(0, 153, 0, 0),
 		Size = UDim2.new(0, 1, 1, 0),
 	}, body)
 
@@ -1551,6 +1639,7 @@ function Window:Tab(options)
 end
 
 function Window:SelectTab(tab)
+	assert(type(tab) == "table" and tab._window == self and table.find(self._tabs, tab), "Tab does not belong to this window")
 	if self._activeTab == tab then return end
 	self._activeTab = tab
 	for _, item in ipairs(self._tabs) do
@@ -1614,7 +1703,7 @@ function Tab:Section(options)
 		BorderSizePixel = 0,
 		Size = UDim2.new(1, 0, 0, 0),
 	}, self._page)
-	corner(frame, 16)
+	corner(frame, 18)
 	local sectionStroke = stroke(frame, 0.86)
 	padding(frame, 20, 18)
 	local sectionColor = sectionOptions.BackgroundColor or Color3.fromRGB(32, 33, 37)
@@ -1855,7 +1944,16 @@ end
 function Section:Dropdown(options)
 	assert(type(options) == "table" and type(options.Name) == "string", "Dropdown requires a Name")
 	local choices = options.Options or {}
+	assert(type(choices) == "table", "Dropdown Options must be a table")
+	local maxVisible = options.MaxVisible or 5
+	assert(
+		isFiniteNumber(maxVisible) and maxVisible >= 1 and maxVisible == math.floor(maxVisible),
+		"Dropdown MaxVisible must be a positive integer"
+	)
 	local selected = options.Default
+	if selected ~= nil then
+		assert(table.find(choices, selected) ~= nil, "Dropdown Default must be included in Options")
+	end
 	local expanded = false
 	local holder = make("Frame", {
 		AutomaticSize = Enum.AutomaticSize.Y,
@@ -1880,14 +1978,20 @@ function Section:Dropdown(options)
 	padding(menu, 14)
 	local menuLayout = make("UIListLayout", { Padding = UDim.new(0, 4), SortOrder = Enum.SortOrder.LayoutOrder }, menu)
 	local dropdown = { Value = selected, Frame = holder }
+	dropdown.Validate = function(_, value)
+		return table.find(choices, value) ~= nil
+	end
 	local function setExpanded(state)
+		if state and #choices == 0 then
+			return
+		end
 		expanded = state
 		if expanded then
 			menu.Visible = true
 			menu.AutomaticSize = Enum.AutomaticSize.None
 			menu.Size = UDim2.new(1, 0, 0, 0)
 			holder.AutomaticSize = Enum.AutomaticSize.None
-			local visibleChoices = math.min(#choices, options.MaxVisible or 5)
+			local visibleChoices = math.min(#choices, maxVisible)
 			local menuHeight = visibleChoices * 32 + 28
 			tween(holder, Theme.Animation.Fade.Time, {
 				Size = UDim2.new(1, 0, 0, 48 + menuHeight),
@@ -1907,6 +2011,7 @@ function Section:Dropdown(options)
 		end
 	end
 	local function setValue(nextValue, fireCallback)
+		assert(dropdown:Validate(nextValue), "Dropdown value must be included in Options")
 		selected = nextValue
 		dropdown.Value = nextValue
 		head.Text = options.Name .. "   " .. tostring(nextValue)
@@ -1935,6 +2040,7 @@ end
 function Section:Keybind(options)
 	assert(type(options) == "table" and type(options.Name) == "string", "Keybind requires a Name")
 	local key = options.Default or Enum.KeyCode.Unknown
+	assert(typeof(key) == "EnumItem" and key.EnumType == Enum.KeyCode, "Keybind Default must be an Enum.KeyCode")
 	local listening = false
 	local row = make("Frame", {
 		BackgroundColor3 = COLORS.Interactive,
@@ -1951,6 +2057,7 @@ function Section:Keybind(options)
 	keyButton.Position = UDim2.new(1, -16, 0.5, 0)
 	local keybind = { Value = key, Frame = row }
 	local function setKey(nextKey, fireCallback)
+		assert(typeof(nextKey) == "EnumItem" and nextKey.EnumType == Enum.KeyCode, "Keybind value must be an Enum.KeyCode")
 		key = nextKey
 		keybind.Value = key
 		keyButton.Text = key.Name
@@ -2042,6 +2149,7 @@ function Section:Input(options)
 		end
 	end)
 	input.Set = function(_, value, fireCallback)
+		assert(type(value) == "string", "Input value must be a string")
 		field.Text = value
 		if fireCallback ~= false then
 			safeCallback(self._window._library, options.Callback, value, false)
@@ -2172,6 +2280,7 @@ function Section:ColorPicker(options)
 		if fireCallback ~= false then safeCallback(self._window._library, options.Callback, color) end
 	end
 	colorPicker.Set = function(_, nextColor, fireCallback)
+		assert(typeof(nextColor) == "Color3", "ColorPicker value must be a Color3")
 		setColor(nextColor, fireCallback)
 	end
 	local satDragging = false
@@ -2243,6 +2352,7 @@ function Window:Notify(options)
 end
 
 function Window:SetVisible(visible)
+	assert(not self._library._destroyed, "Cannot change visibility after the library has been destroyed")
 	if visible then
 		self._visible = true
 		self.Root.Visible = true
@@ -2250,7 +2360,7 @@ function Window:SetVisible(visible)
 		self.Root.BackgroundTransparency = 1
 		tween(self._scale, Theme.Animation.Open.Time, { Scale = 1 }, Enum.EasingStyle.Quint)
 		tween(self.Root, Theme.Animation.Fade.Time, { BackgroundTransparency = 0 })
-		tween(self._stroke, Theme.Animation.Fade.Time, { Transparency = 0 })
+		tween(self._stroke, Theme.Animation.Fade.Time, { Transparency = 0.68 })
 	else
 		self._visible = false
 		tween(self._scale, Theme.HoverDuration, { Scale = Theme.OpenScale })
@@ -2340,6 +2450,14 @@ function Window:LoadConfig(name)
 			if not decodeOk then
 				warn("[Havoc Lib] Invalid value for config flag " .. tostring(flag) .. ":", decoded)
 				return false, "config contains an invalid setting; no values were applied."
+			end
+			local validate = setting.Control.Validate
+			if validate then
+				local validationOk, isValid = pcall(validate, setting.Control, decoded)
+				if not validationOk or isValid ~= true then
+					warn("[Havoc Lib] Invalid value for config flag " .. tostring(flag))
+					return false, "config contains an invalid setting; no values were applied."
+				end
 			end
 			table.insert(pending, { Control = setting.Control, Value = decoded })
 		else
@@ -2477,9 +2595,12 @@ end
 
 function HavocLib:Notify(options)
 	assert(type(options) == "table", "Notify requires an options table")
+	assert(not self._destroyed, "Cannot notify after the library has been destroyed")
 	local title = options.Title or "notification"
 	local content = options.Content or ""
-	local duration = math.max(tonumber(options.Duration) or 4, 0.5)
+	local requestedDuration = tonumber(options.Duration) or 4
+	assert(isFiniteNumber(requestedDuration), "Notification Duration must be a finite number")
+	local duration = math.max(requestedDuration, 0.5)
 	local host = self._notificationHost
 	if not host then
 		host = make("Frame", {
@@ -2562,7 +2683,9 @@ function HavocLib:Destroy()
 	for _, connection in ipairs(self.Window._connections) do
 		connection:Disconnect()
 	end
+	table.clear(self.Window._connections)
 	self.ScreenGui:Destroy()
+	table.clear(self._notifications)
 end
 
 HavocLib.Colors = COLORS
