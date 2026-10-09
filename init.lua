@@ -9,25 +9,26 @@ local TextService = game:GetService("TextService")
 local Workspace = game:GetService("Workspace")
 
 local Theme = {}
+local CONTROL_RIGHT_INSET = 72
 
 local function isFiniteNumber(value)
 	return type(value) == "number" and value == value and math.abs(value) < math.huge
 end
 
 Theme.Colors = {
-	Background = Color3.fromRGB(15, 16, 18),
-	Surface = Color3.fromRGB(22, 23, 26),
+	Background = Color3.fromRGB(13, 14, 16),
+	Surface = Color3.fromRGB(21, 22, 25),
 	SurfaceAlt = Color3.fromRGB(28, 29, 32),
-	Container = Color3.fromRGB(33, 34, 37),
-	Interactive = Color3.fromRGB(43, 44, 48),
+	Container = Color3.fromRGB(36, 37, 41),
+	Interactive = Color3.fromRGB(45, 46, 50),
 	Accent = Color3.fromRGB(109, 152, 255),
 	Primary = Color3.fromRGB(109, 152, 255),
 	PrimaryStrong = Color3.fromRGB(146, 181, 255),
 	ToggleOn = Color3.fromRGB(109, 152, 255),
-	Border = Color3.fromRGB(101, 109, 132),
-	Text = Color3.fromRGB(245, 247, 251),
-	Muted = Color3.fromRGB(173, 178, 191),
-	Icon = Color3.fromRGB(202, 207, 220),
+	Border = Color3.fromRGB(94, 97, 105),
+	Text = Color3.fromRGB(245, 245, 247),
+	Muted = Color3.fromRGB(166, 168, 174),
+	Icon = Color3.fromRGB(195, 197, 203),
 	Success = Color3.fromRGB(94, 221, 170),
 	Glow = Color3.fromRGB(109, 152, 255),
 }
@@ -36,7 +37,7 @@ Theme.CornerRadius = UDim.new(0, 18)
 Theme.Stroke = {
 	Color = Color3.fromRGB(255, 255, 255),
 	Thickness = 1.15,
-	Transparency = 0.82,
+	Transparency = 0.86,
 	ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
 	LineJoinMode = Enum.LineJoinMode.Round,
 }
@@ -297,15 +298,16 @@ local Elements = (function()
 			Size = options.Size or UDim2.new(1, 0, 0, 50),
 		}, parent)
 		componentElements.Corner(row, 12)
+		componentElements.Gradient(row, COLORS.Container, Color3.fromRGB(29, 30, 33), 90)
 		local rowStroke = componentElements.Stroke(row, 1)
 		local label = componentElements.TextLabel(row, options.Name, 14, COLORS.Text, Enum.Font.GothamMedium)
 		label.Position = UDim2.fromOffset(20, 0)
-		label.Size = UDim2.new(1, -90, 1, 0)
+		label.Size = UDim2.new(1, -CONTROL_RIGHT_INSET - 46 - 20, 1, 0)
 		local track = componentElements.Make("Frame", {
 			AnchorPoint = Vector2.new(1, 0.5),
 			BackgroundColor3 = value and COLORS.ToggleOn or Color3.fromRGB(76, 77, 82),
 			BorderSizePixel = 0,
-			Position = UDim2.new(1, -24, 0.5, 0),
+			Position = UDim2.new(1, -CONTROL_RIGHT_INSET, 0.5, 0),
 			Size = UDim2.fromOffset(46, 26),
 		}, row)
 		componentElements.Corner(track, 26)
@@ -410,6 +412,7 @@ local Elements = (function()
 			Size = UDim2.new(1, 0, 0, 102),
 		}, parent)
 		componentElements.Corner(row, 12)
+		componentElements.Gradient(row, COLORS.Container, Color3.fromRGB(29, 30, 33), 90)
 		local name = componentElements.TextLabel(row, options.Name, 14, COLORS.Text, Enum.Font.GothamMedium)
 		name.Position = UDim2.fromOffset(20, 7)
 		name.Size = UDim2.new(1, -40, 0, 24)
@@ -418,7 +421,7 @@ local Elements = (function()
 			BackgroundColor3 = COLORS.SurfaceAlt,
 			ClearTextOnFocus = false,
 			Font = Enum.Font.Gotham,
-			Position = UDim2.new(1, -24, 0.53, 0),
+			Position = UDim2.new(1, -CONTROL_RIGHT_INSET, 0, 19),
 			Size = UDim2.fromOffset(68, 24),
 			Text = tostring(value),
 			TextColor3 = COLORS.Text,
@@ -431,7 +434,7 @@ local Elements = (function()
 			BackgroundColor3 = Color3.fromRGB(24, 24, 27),
 			BorderSizePixel = 0,
 			Position = UDim2.new(0, 20, 0, 51),
-			Size = UDim2.new(1, -124, 0, 7),
+			Size = UDim2.new(1, -20 - CONTROL_RIGHT_INSET, 0, 7),
 		}, row)
 		componentElements.Corner(bar, 20)
 		local minimumLabel = componentElements.TextLabel(row, tostring(minimum), 10, Color3.fromRGB(176, 176, 183))
@@ -441,7 +444,7 @@ local Elements = (function()
 		local maximumLabel = componentElements.TextLabel(row, tostring(maximum), 10, Color3.fromRGB(176, 176, 183))
 		maximumLabel.TextSize = 11
 		maximumLabel.AnchorPoint = Vector2.new(1, 0)
-		maximumLabel.Position = UDim2.new(1, -104, 0, 76)
+		maximumLabel.Position = UDim2.new(1, -CONTROL_RIGHT_INSET, 0, 76)
 		maximumLabel.Size = UDim2.new(0, 70, 0, 16)
 		local fill = componentElements.Make("Frame", {
 			BackgroundColor3 = COLORS.Primary,
@@ -464,7 +467,7 @@ local Elements = (function()
 			BackgroundTransparency = 1,
 			Name = tostring(options.Name) .. " slider",
 			Selectable = true,
-			Size = UDim2.new(1, -116, 0, 28),
+			Size = UDim2.new(1, -12 - CONTROL_RIGHT_INSET, 0, 28),
 			Position = UDim2.new(0, 12, 0, 43),
 			Text = "",
 		}, row)
@@ -956,7 +959,7 @@ function HavocLib.new(options)
 	corner(outline, 21)
 	local outlineScale = make("UIScale", { Scale = responsiveScale.Scale }, outline)
 	local rootStroke = stroke(outline)
-	rootStroke.Color = Color3.fromRGB(143, 149, 163)
+	rootStroke.Color = Color3.fromRGB(132, 134, 140)
 	rootStroke.Thickness = 1.2
 	rootStroke.Transparency = 0.48
 	local function syncOutline()
@@ -978,7 +981,7 @@ function HavocLib.new(options)
 	end)
 	window._stroke = rootStroke
 	window._outline = outline
-	Elements.Gradient(root, COLORS.Background, Color3.fromRGB(12, 14, 19), 145)
+	Elements.Gradient(root, Color3.fromRGB(21, 22, 25), COLORS.Background, 90)
 	local rootGlow = make("Frame", {
 		AnchorPoint = Vector2.new(0.5, 0),
 		BackgroundColor3 = COLORS.Glow,
@@ -1014,7 +1017,7 @@ function HavocLib.new(options)
 	end
 
 	local header = make("Frame", {
-		BackgroundColor3 = Color3.fromRGB(23, 25, 31),
+		BackgroundColor3 = Color3.fromRGB(25, 26, 29),
 		ClipsDescendants = true,
 		Position = UDim2.fromScale(0, 0),
 		Size = UDim2.new(1, 0, 0, 64),
@@ -1022,7 +1025,8 @@ function HavocLib.new(options)
 	window.Header = header
 	corner(header, 22)
 	padding(header, 12, 0)
-	header.BackgroundColor3 = Color3.fromRGB(19, 20, 23)
+	header.BackgroundColor3 = Color3.fromRGB(20, 21, 24)
+	Elements.Gradient(header, Color3.fromRGB(26, 27, 30), header.BackgroundColor3, 90)
 	squareCornerFill(header, UDim2.new(0, 0, 1, -22), header.BackgroundColor3, 22)
 	squareCornerFill(header, UDim2.new(1, -22, 1, -22), header.BackgroundColor3, 22)
 	local headerSeparator = make("Frame", {
@@ -1241,6 +1245,7 @@ function HavocLib.new(options)
 		Position = UDim2.fromScale(0, 0),
 		Size = UDim2.new(0, 138, 1, 0),
 	}, body)
+	Elements.Gradient(sidebar, Color3.fromRGB(28, 29, 32), sidebar.BackgroundColor3, 90)
 	corner(sidebar, 22)
 	squareCornerFill(sidebar, UDim2.new(0, 0, 0, 0), sidebar.BackgroundColor3, 22)
 	squareCornerFill(sidebar, UDim2.new(1, -22, 0, 0), sidebar.BackgroundColor3, 22)
@@ -1263,6 +1268,7 @@ function HavocLib.new(options)
 		Position = UDim2.new(0, 138, 0, 0),
 		Size = UDim2.new(1, -138, 1, 0),
 	}, body)
+	Elements.Gradient(content, Color3.fromRGB(32, 33, 36), content.BackgroundColor3, 90)
 	corner(content, 22)
 	squareCornerFill(content, UDim2.new(0, 0, 0, 0), content.BackgroundColor3, 22)
 	squareCornerFill(content, UDim2.new(1, -22, 0, 0), content.BackgroundColor3, 22)
@@ -1270,7 +1276,7 @@ function HavocLib.new(options)
 	window.Content = content
 	make("Frame", {
 		BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-		BackgroundTransparency = 0.955,
+		BackgroundTransparency = 0.92,
 		BorderSizePixel = 0,
 		Position = UDim2.new(0, 137, 0, 0),
 		Size = UDim2.new(0, 1, 1, 0),
@@ -1556,9 +1562,9 @@ function Window:Tab(options)
 		Text = "",
 	}, self._tabList)
 	tab._button = tabButton
-	tabButton.BackgroundColor3 = Color3.fromRGB(32, 32, 34)
+	tabButton.BackgroundColor3 = COLORS.SurfaceAlt
 	tabButton.BackgroundTransparency = 1
-	Elements.Gradient(tabButton, Color3.fromRGB(41, 41, 44), Color3.fromRGB(35, 35, 38), 100)
+	Elements.Gradient(tabButton, Color3.fromRGB(41, 42, 46), Color3.fromRGB(35, 36, 40), 100)
 	tabButton.Selectable = true
 	local tabScale = make("UIScale", { Scale = 1 }, tabButton)
 	tabButton.MouseButton1Down:Connect(function()
@@ -1590,7 +1596,7 @@ function Window:Tab(options)
 	icon.AnchorPoint = Vector2.new(0.5, 0.5)
 	icon.Position = UDim2.new(0, 20, 0.5, 0)
 	icon.Size = UDim2.fromOffset(20, 20)
-	local label = textLabel(tabButton, string.lower(options.Name), 13, Color3.fromRGB(205, 205, 210), Enum.Font.GothamMedium)
+	local label = textLabel(tabButton, string.lower(options.Name), 13, COLORS.Muted, Enum.Font.GothamMedium)
 	label.Position = UDim2.fromOffset(44, 0)
 	label.Size = UDim2.new(1, -78, 1, 0)
 	local badge = textLabel(tabButton, "", 11, COLORS.Text, Enum.Font.GothamBold)
@@ -1627,8 +1633,8 @@ function Window:Tab(options)
 		ScrollBarThickness = 10,
 		ScrollingDirection = Enum.ScrollingDirection.Y,
 		VerticalScrollBarInset = Enum.ScrollBarInset.ScrollBar,
-		Position = UDim2.fromOffset(12, 10),
-		Size = UDim2.new(1, -24, 1, -54),
+		Position = UDim2.fromOffset(8, 10),
+		Size = UDim2.new(1, -16, 1, -54),
 		Visible = false,
 	}, self.Content)
 	tab._page = page
@@ -1666,9 +1672,9 @@ function Window:Tab(options)
 		emptyLabel.TextXAlignment = Enum.TextXAlignment.Center
 		tab._emptyState = emptyState
 	end
-	padding(page, 24, 28)
+	padding(page, 12, 24)
 	local pageLayout = make("UIListLayout", {
-		Padding = UDim.new(0, 16),
+		Padding = UDim.new(0, 12),
 		SortOrder = Enum.SortOrder.LayoutOrder,
 	}, page)
 	setCanvasHeight(page, pageLayout, 30)
@@ -1716,9 +1722,9 @@ function Window:SelectTab(tab)
 	for _, item in ipairs(self._tabs) do
 		local active = item == tab
 		item._page.Visible = active
-		item._page.Position = active and UDim2.fromOffset(19, 10) or UDim2.fromOffset(12, 10)
+		item._page.Position = active and UDim2.fromOffset(15, 10) or UDim2.fromOffset(8, 10)
 		if active then
-			tween(item._page, 0.22, { Position = UDim2.fromOffset(12, 10) })
+			tween(item._page, 0.22, { Position = UDim2.fromOffset(8, 10) })
 		end
 		item._scrollHint.Visible = active
 		item._updateScrollHint()
@@ -1726,7 +1732,7 @@ function Window:SelectTab(tab)
 			item._emptyState.Visible = active and #item._cards == 0
 		end
 		tween(item._button, Theme.HoverDuration, {
-			BackgroundColor3 = active and Color3.fromRGB(37, 38, 42) or Color3.fromRGB(32, 33, 36),
+			BackgroundColor3 = active and COLORS.Container or COLORS.SurfaceAlt,
 			BackgroundTransparency = active and 0 or 1,
 		})
 		local itemStroke = item._button:FindFirstChildOfClass("UIStroke")
@@ -1771,16 +1777,19 @@ function Tab:Section(options)
 	end
 	local frame = make("Frame", {
 		AutomaticSize = Enum.AutomaticSize.Y,
-		BackgroundColor3 = sectionOptions.BackgroundColor or COLORS.SurfaceAlt,
+		BackgroundColor3 = sectionOptions.BackgroundColor or Color3.fromRGB(31, 32, 36),
 		BackgroundTransparency = Theme.PanelTransparency,
 		BorderSizePixel = 0,
 		Size = UDim2.new(1, 0, 0, 0),
 	}, self._page)
 	corner(frame, 16)
-	padding(frame, 26, 18)
+	padding(frame, 18, 16)
 	if sectionOptions.GradientColor then
 		Elements.Gradient(frame, frame.BackgroundColor3, sectionOptions.GradientColor)
+	else
+		Elements.Gradient(frame, Color3.fromRGB(37, 38, 42), frame.BackgroundColor3, 90)
 	end
+	stroke(frame, 0.9)
 	local layout = make("UIListLayout", {
 		Padding = UDim.new(0, 12),
 		SortOrder = Enum.SortOrder.LayoutOrder,
@@ -2114,12 +2123,14 @@ function Section:Keybind(options)
 		Size = UDim2.new(1, 0, 0, 48),
 	}, self._frame)
 	corner(row, 12)
+	Elements.Gradient(row, COLORS.Container, Color3.fromRGB(29, 30, 33), 90)
 	local label = textLabel(row, options.Name, 13, COLORS.Text, Enum.Font.GothamMedium)
 	label.Position = UDim2.fromOffset(20, 0)
-	label.Size = UDim2.new(1, -120, 1, 0)
+	label.Size = UDim2.new(1, -CONTROL_RIGHT_INSET - 68 - 20, 1, 0)
 	local keyButton = button(row, key.Name, UDim2.fromOffset(68, 30), COLORS.SurfaceAlt)
 	keyButton.AnchorPoint = Vector2.new(1, 0.5)
-	keyButton.Position = UDim2.new(1, -24, 0.5, 0)
+	keyButton.Position = UDim2.new(1, -CONTROL_RIGHT_INSET, 0.5, 0)
+	Elements.Gradient(keyButton, COLORS.SurfaceAlt, Color3.fromRGB(22, 23, 26), 90)
 	local keyCorner = keyButton:FindFirstChildOfClass("UICorner")
 	if keyCorner then keyCorner.CornerRadius = UDim.new(0, 12) end
 	local keybind = { Value = key, Frame = row }
@@ -2164,6 +2175,7 @@ function Section:Input(options)
 		Size = UDim2.new(1, 0, 0, multiline and 104 or 70),
 	}, self._frame)
 	corner(row, 12)
+	Elements.Gradient(row, COLORS.Container, Color3.fromRGB(29, 30, 33), 90)
 	local label = textLabel(row, options.Name, 13, COLORS.Text, Enum.Font.GothamMedium)
 	label.Position = UDim2.fromOffset(20, 2)
 	label.Size = UDim2.new(1, -40, 0, 25)
@@ -2185,6 +2197,7 @@ function Section:Input(options)
 		Name = tostring(options.Name) .. " input",
 	}, row)
 	corner(field, 12)
+	Elements.Gradient(field, COLORS.SurfaceAlt, Color3.fromRGB(21, 22, 25), 90)
 	local fieldStroke = stroke(field)
 	padding(field, 8, 0)
 	field.Focused:Connect(function()
